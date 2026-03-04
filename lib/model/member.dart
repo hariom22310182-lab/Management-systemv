@@ -2,6 +2,7 @@ class Member {
   String? id;
   String name;
   String? email;
+  String? password;
   int? mobileNo;
   String? role;
   List<String> tasks;
@@ -11,6 +12,7 @@ class Member {
     required this.name,
     required this.tasks,
     this.email,
+    this.password,
     this.mobileNo,
     this.role,
   });
@@ -20,6 +22,7 @@ class Member {
       id: json['id'],
       name: json['name'],
       email: json['email'],
+      password: json['password'],
       mobileNo: json['mobileNo'],
       role: json['role'],
       tasks: List<String>.from(json['tasks'] ?? []),
@@ -31,6 +34,7 @@ class Member {
       "id": id,
       "name": name,
       "email": email,
+      "password": password,
       "mobileNo": mobileNo,
       "role": role,
       "tasks": tasks,

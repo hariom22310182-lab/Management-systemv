@@ -14,22 +14,38 @@ class MemberController extends GetxController {
     super.onInit();
   }
 
-  void addMember(Member member) async {
+  Future<void> addMember(Member member) async {
     isLoading.value = true;
-    await _memberService.addMember(member);
-    getMembers();
-    isLoading.value = false;
+    try {
+      await _memberService.addMember(member);
+      await getMembers();
+      Get.back();
+      Get.snackbar('Success', 'Employee added successfully');
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to add member: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> getMembers() async {
     isLoading.value = true;
-    members.value = await _memberService.getMembers();
-    isLoading.value = false;
+    try {
+      members.value = await _memberService.getMembers();
+    } catch (e) {
+      print('MemberController: Failed to fetch members — $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  void removeMember(String id) async {
-    await _memberService.removeMember(id);
-    getMembers();
+  Future<void> removeMember(String id) async {
+    try {
+      await _memberService.removeMember(id);
+      await getMembers();
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to remove member: $e');
+    }
   }
 
   Future<void> getMemberById(String id) async {

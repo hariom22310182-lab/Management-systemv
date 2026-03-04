@@ -1,0 +1,49 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:managementt/config.dart';
+import 'package:managementt/controller/auth_controller.dart';
+import 'package:managementt/model/auth_response.dart';
+
+class AuthService {
+  // Login and logout intentionally use raw http — NOT ApiService.
+  // ApiService attaches "Authorization: Bearer <token>" to every request.
+  // At login time there is no token yet, so using ApiService would send
+  // "Bearer " (empty), the backend returns 401, and the refresh flow
+  // immediately throws "Session expired" before login completes.
+
+  Future<AuthResponse> login(String username, String password) async {
+    final response = await http.post(
+      Uri.parse('${Config.baseUrl}/auth/login'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'username': username, 'password': password}),
+    );
+
+    if (response.statusCode == 200) {
+      return AuthResponse.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('${response.statusCode}: ${response.body}');
+    }
+  }
+
+  Future<void> logout() async {
+    try {
+      final auth = AuthController.to;
+      await http.post(
+        Uri.parse('${Config.baseUrl}/auth/logout'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refreshToken': auth.refreshToken.value}),
+      );
+    } catch (_) {
+      // Best-effort — still clear local session even if backend call fails.
+    }
+  }
+
+  String _parseError(String body) {
+    try {
+      final data = jsonDecode(body);
+      return data['message'] ?? 'Login failed';
+    } catch (_) {
+      return 'Login failed';
+    }
+  }
+}

@@ -9,6 +9,7 @@ class AddEmployee extends StatelessWidget {
   final TextEditingController nameController = TextEditingController();
   final roleController = ''.obs;
   final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
   // final TextEditingController phoneController = TextEditingController();
   final MemberController memberController = Get.find<MemberController>();
 
@@ -36,6 +37,8 @@ class AddEmployee extends StatelessWidget {
                 const SizedBox(height: 10),
                 AppTextfield(controller: emailController, label: "Email"),
                 const SizedBox(height: 10),
+                AppTextfield(controller: passwordController, label: "Password"),
+                const SizedBox(height: 10),
                 Row(
                   children: [
                     const Spacer(),
@@ -51,8 +54,8 @@ class AddEmployee extends StatelessWidget {
                       width: MediaQuery.widthOf(context) * 0.5,
                       hintText: "Select employee role",
                       dropdownMenuEntries: const [
-                        DropdownMenuEntry(value: "user", label: "User"),
-                        DropdownMenuEntry(value: "admin", label: "Admin"),
+                        DropdownMenuEntry(value: "USER", label: "User"),
+                        DropdownMenuEntry(value: "ADMIN", label: "Admin"),
                       ],
                       onSelected: (value) {
                         roleController.value = value ?? '';
@@ -67,10 +70,21 @@ class AddEmployee extends StatelessWidget {
                       : AppButton(
                           text: "Add Employee",
                           onPressed: () {
-                            if (nameController.text.isEmpty) {
+                            if (nameController.text.isEmpty ||
+                                emailController.text.isEmpty ||
+                                passwordController.text.isEmpty) {
                               Get.snackbar(
                                 "Error",
                                 "Please fill all fields",
+                                backgroundColor: Colors.redAccent,
+                                colorText: Colors.white,
+                              );
+                              return;
+                            }
+                            if (roleController.value.isEmpty) {
+                              Get.snackbar(
+                                "Error",
+                                "Please select a role",
                                 backgroundColor: Colors.redAccent,
                                 colorText: Colors.white,
                               );
@@ -81,7 +95,7 @@ class AddEmployee extends StatelessWidget {
                                 name: nameController.text,
                                 role: roleController.value,
                                 email: emailController.text,
-                                // phone: phoneController.text,
+                                password: passwordController.text,
                                 tasks: [],
                               ),
                             );

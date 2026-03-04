@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:managementt/controller/member_controller.dart';
+import 'package:get/get.dart';
+import 'package:managementt/admin/add_employee.dart';
 import 'package:managementt/controller/task_controller.dart';
 import 'package:managementt/model/task.dart';
 
 class AdminDashboard extends StatelessWidget {
-  const AdminDashboard({super.key});
+  AdminDashboard({super.key});
+
+  final _taskController = Get.find<TaskController>();
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +32,10 @@ class AdminDashboard extends StatelessWidget {
                     Text(
                       "Welcome back,",
                       style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => Get.to(() => AddEmployee()),
+                      child: Text("Add employee"),
                     ),
                     Text(
                       "Manthan Agrawal",
@@ -131,20 +138,7 @@ class AdminDashboard extends StatelessWidget {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            ListView.builder(
-                              // itemCount: allTasks.length,
-                              itemCount: TaskController().tasks.length,
-                              itemBuilder: (context, index) {
-                                Task task = TaskController().tasks[index];
 
-                                return Card(
-                                  child: ListTile(
-                                    title: Text(task.title),
-                                    subtitle: Text(task.priority),
-                                  ),
-                                );
-                              },
-                            ),
                             Text(
                               "Task Analytics",
                               style: TextStyle(
@@ -193,6 +187,25 @@ class AdminDashboard extends StatelessWidget {
                     Text("See all"),
                     Icon(Icons.arrow_forward_ios),
                   ],
+                ),
+              ),
+              Obx(
+                () => ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: _taskController.tasks.length,
+                  itemBuilder: (context, index) {
+                    Task task = _taskController.tasks[index];
+
+                    return Card(
+                      color: Colors.amber,
+                      elevation: 2,
+                      child: ListTile(
+                        title: Text(task.title),
+                        subtitle: Text(task.priority),
+                      ),
+                    );
+                  },
                 ),
               ),
               Padding(

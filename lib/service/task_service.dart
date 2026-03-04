@@ -1,83 +1,48 @@
 import 'dart:convert';
-import 'package:managementt/config.dart';
-import 'package:http/http.dart' as http;
 import 'package:managementt/model/task.dart';
+import 'package:managementt/service/api_service.dart';
 
 class TaskService {
-  final String baseUrl = "${Config.baseUrl}/tasks";
-
-  String _basicAuth() {
-    String username = "yash"; // later you will take from login
-    String password = "1234";
-
-    return 'Basic ' + base64Encode(utf8.encode('$username:$password'));
-  }
+  final ApiService _api = ApiService();
 
   Future<void> addTask(Task task) async {
-    await http.post(
-      Uri.parse("$baseUrl/add"),
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": _basicAuth(),
-      },
-      body: jsonEncode(task.toJson()),
-    );
+    await _api.post('/tasks/add', body: task.toJson());
   }
 
-  Future<Task> getTaskById(String Id) async {
-    final responce = await http.get(
-      Uri.parse("$baseUrl/id/$Id"),
-      headers: {"Authorization": _basicAuth()},
-    );
-    if (responce.statusCode == 200) {
-      Task data = jsonDecode(responce.body);
-      return data;
+  Future<Task> getTaskById(String id) async {
+    final response = await _api.get('/tasks/id/$id');
+    if (response.statusCode == 200) {
+      return Task.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception("Failed to get task");
+      throw Exception('Failed to get task');
     }
   }
 
   Future<List<Task>> getAllTask() async {
-    final responce = await http.get(
-      Uri.parse("$baseUrl/AllTasks"),
-      headers: {"Authorization": _basicAuth()},
-    );
-    if (responce.statusCode == 200) {
-      List data = jsonDecode(responce.body);
+    final response = await _api.get('/tasks/AllTasks');
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(response.body);
       return data.map((e) => Task.fromJson(e)).toList();
     } else {
-      throw Exception("Failed to load tasks");
+      throw Exception('Failed to load tasks');
     }
   }
 
   Future<List<Task>> getTaskByOwner(String id) async {
-    final responce = await http.get(
-      Uri.parse("$baseUrl/member/$id"),
-      headers: {"Authorization": _basicAuth()},
-    );
-    if (responce.statusCode == 200) {
-      List data = jsonDecode(responce.body);
+    final response = await _api.get('/tasks/member/$id');
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(response.body);
       return data.map((e) => Task.fromJson(e)).toList();
     } else {
-      throw Exception("Failed to fetch tasks for owner");
+      throw Exception('Failed to fetch tasks for owner');
     }
   }
 
   Future<void> updateTask(String id, Task newTask) async {
-    await http.put(
-      Uri.parse("$baseUrl/update/$id"),
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": _basicAuth(),
-      },
-      body: jsonEncode(newTask.toJson()),
-    );
+    await _api.put('/tasks/update/$id', body: newTask.toJson());
   }
 
   Future<void> deleteTask(String id) async {
-    await http.delete(
-      Uri.parse("$baseUrl/delete/$id"),
-      headers: {"Authorization": _basicAuth()},
-    );
+    await _api.delete('/tasks/delete/$id');
   }
 }

@@ -12,7 +12,6 @@ class TaskController extends GetxController {
 
   @override
   void onInit() {
-    
     getAllTask();
     super.onInit();
     if (ownerId != null) {
@@ -22,38 +21,67 @@ class TaskController extends GetxController {
 
   Future<void> addTask(Task task) async {
     isLoading.value = true;
-    await _taskService.addTask(task);
-    isLoading.value = false;
+    try {
+      await _taskService.addTask(task);
+      await getAllTask();
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to add task: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> getAllTask() async {
     isLoading.value = true;
-    tasks.value = await _taskService.getAllTask();
-    isLoading.value = false;
+    try {
+      tasks.value = await _taskService.getAllTask();
+    } catch (e) {
+      print("Error fetching tasks: $e"); // you'll see the real error here
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> updateTask(String id, Task newTask) async {
     isLoading.value = true;
-    await _taskService.updateTask(id, newTask);
-    // getTaskByOwner(ownerId);
-    isLoading.value = false;
+    try {
+      await _taskService.updateTask(id, newTask);
+      await getAllTask();
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to update task: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> getTaskByOwner(String id) async {
     isLoading.value = true;
-    ownerTask.value = await _taskService.getTaskByOwner(id);
-    isLoading.value = false;
+    try {
+      ownerTask.value = await _taskService.getTaskByOwner(id);
+    } catch (e) {
+      print('TaskController: Failed to fetch owner tasks — $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<Task> getTaskById(String id) async {
     isLoading.value = true;
-    Task task = await _taskService.getTaskById(id);
-    isLoading.value = false;
-    return task;
+    try {
+      return await _taskService.getTaskById(id);
+    } catch (e) {
+      rethrow;
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> removeTask(String id) async {
-    await _taskService.deleteTask(id);
-    // getTaskByOwner(ownerId);
+    try {
+      await _taskService.deleteTask(id);
+      await getAllTask();
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to remove task: $e');
+    }
   }
 }

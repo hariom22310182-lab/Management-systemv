@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:managementt/components/app_button.dart';
 import 'package:managementt/components/app_textfield.dart';
+import 'package:managementt/controller/auth_controller.dart';
+import 'package:managementt/service/auth_service.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({super.key});
   final TextEditingController userIdController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
+  final _isLoading = false.obs;
 
   @override
   Widget build(BuildContext context) {
@@ -103,9 +108,34 @@ class LoginPage extends StatelessWidget {
                         text: "Login",
                         buttonColor: Color(0xFF2563EB),
                         onPressed: () async {
-                          print(
-                            "Login done  , userIdController.text ${userIdController.text}",
-                          );
+                          final email = userIdController.text.trim();
+                          final password = passwordController.text.trim();
+
+                          if (email.isEmpty || password.isEmpty) {
+                            Get.snackbar(
+                              'Error',
+                              'Please enter both User ID and Password',
+                              snackPosition: SnackPosition.BOTTOM,
+                            );
+                            return;
+                          }
+
+                          _isLoading.value = true;
+                          try {
+                            final authResponse = await _authService.login(
+                              email,
+                              password,
+                            );
+                            await AuthController.to.setAuthData(authResponse);
+                          } catch (e) {
+                            Get.snackbar(
+                              'Login Failed',
+                              e.toString(),
+                              snackPosition: SnackPosition.BOTTOM,
+                            );
+                          } finally {
+                            _isLoading.value = false;
+                          }
                         },
                       ),
                     ],
