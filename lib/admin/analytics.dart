@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:managementt/components/app_colors.dart';
 
 import 'package:managementt/components/task_velocity_chart.dart';
 import 'package:managementt/components/project_health_section.dart';
@@ -37,7 +38,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   Widget build(BuildContext context) {
     final topPad = MediaQuery.of(context).padding.top;
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: AppColors.scaffoldBackground,
       body: SingleChildScrollView(
         child: SingleChildScrollView(
           child: Column(

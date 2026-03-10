@@ -23,23 +23,15 @@ class AdminWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(
-      () => Scaffold(
-        extendBody: true,
-        body: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          switchInCurve: Curves.easeOut,
-          switchOutCurve: Curves.easeIn,
-          transitionBuilder: (child, animation) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-          child: KeyedSubtree(
-            key: ValueKey<int>(navController.currentIndex.value),
-            child: _pages[navController.currentIndex.value],
-          ),
-        ),
-        bottomNavigationBar: const DashboardBottomNav(),
+    return Scaffold(
+      extendBody: true,
+      body: PageView(
+        controller: navController.pageController,
+        onPageChanged: navController.onPageChanged,
+        physics: const ClampingScrollPhysics(),
+        children: _pages,
       ),
+      bottomNavigationBar: const DashboardBottomNav(),
     );
   }
 }
