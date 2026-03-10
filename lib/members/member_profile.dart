@@ -238,17 +238,20 @@ class _MemberProfilePageState extends State<MemberProfilePage> {
                   children: [
                     const _InfoRow(
                       icon: Icons.email_outlined,
-                      text: 'sarah.chen@company.com', c: Colors.blue,
+                      text: 'sarah.chen@company.com',
+                      c: Colors.blue,
                     ),
                     const SizedBox(height: 10),
                     const _InfoRow(
                       icon: Icons.phone_outlined,
-                      text: '1 (555) 234 5678', c: Colors.blue,
+                      text: '1 (555) 234 5678',
+                      c: Colors.blue,
                     ),
                     const SizedBox(height: 10),
                     const _InfoRow(
                       icon: Icons.calendar_month_outlined,
-                      text: 'Joined March 15, 2023', c: Colors.blueGrey,
+                      text: 'Joined March 15, 2023',
+                      c: Colors.blueGrey,
                     ),
                     const SizedBox(height: 7),
                     Divider(color: Colors.grey.withValues(alpha: 0.3)),
@@ -426,11 +429,7 @@ class _InfoRow extends StatelessWidget {
         const SizedBox(width: 10),
         Text(
           text,
-          style: TextStyle(
-            fontSize: 16,
-            color: c,
-            fontWeight: FontWeight.w500,
-          ),
+          style: TextStyle(fontSize: 16, color: c, fontWeight: FontWeight.w500),
         ),
       ],
     );

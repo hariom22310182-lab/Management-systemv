@@ -3,10 +3,10 @@ import 'package:get/get.dart';
 import 'package:managementt/admin/analytics.dart';
 import 'package:managementt/admin/employee_dashboard.dart';
 import 'package:managementt/admin/main_dashboard.dart';
-import 'package:managementt/admin/profile.dart';
 import 'package:managementt/admin/project_dashboard.dart';
 import 'package:managementt/components/dashboard_bottom_nav.dart';
 import 'package:managementt/controller/admin_nav_controller.dart';
+import 'package:managementt/members/member_profile.dart';
 
 class AdminWrapper extends StatelessWidget {
   AdminWrapper({super.key});
@@ -18,7 +18,7 @@ class AdminWrapper extends StatelessWidget {
     ProjectDashboard(),
     EmployeeDashboard(),
     const Analytics(),
-    const Profile(),
+    const MemberProfilePage(),
   ];
 
   @override
