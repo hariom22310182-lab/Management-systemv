@@ -17,7 +17,7 @@ class AdminWrapper extends StatelessWidget {
     const AdminDashboard(),
     ProjectDashboard(),
     EmployeeDashboard(),
-    const Analytics(),
+    AnalyticsPage(),
     const MemberProfilePage(),
   ];
 

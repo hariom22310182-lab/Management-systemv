@@ -54,7 +54,7 @@ class SplashScreen extends StatelessWidget {
 
       // No saved session — show login.
       if (!auth.isLoggedIn.value) {
-        return LoginPage();
+        return AdminWrapper();
       }
 
       // Session restored — render the correct dashboard directly.

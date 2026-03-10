@@ -1,0 +1,212 @@
+
+import 'dart:math';
+import 'package:flutter/material.dart';
+
+class PriorityBreakdown extends StatelessWidget {
+  const PriorityBreakdown({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    const highPriority = 12;
+    const mediumPriority = 7;
+    const lowPriority = 0;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Priority Breakdown',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Flexible(
+                flex: 1,
+                child: SizedBox(
+                  height: 120,
+                  child: _SimpleDonutChart(
+                    highPriority: highPriority.toDouble(),
+                    mediumPriority: mediumPriority.toDouble(),
+                    lowPriority: lowPriority.toDouble(),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Flexible(
+                flex: 1,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    _PriorityItem(
+                      label: 'High',
+                      count: highPriority,
+                      color: Colors.red,
+                    ),
+                    SizedBox(height: 12),
+                    _PriorityItem(
+                      label: 'Medium',
+                      count: mediumPriority,
+                      color: Colors.orange,
+                    ),
+                    SizedBox(height: 12),
+                    _PriorityItem(
+                      label: 'Low',
+                      count: lowPriority,
+                      color: Colors.teal,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SimpleDonutChart extends StatelessWidget {
+  final double highPriority;
+  final double mediumPriority;
+  final double lowPriority;
+
+  const _SimpleDonutChart({
+    required this.highPriority,
+    required this.mediumPriority,
+    required this.lowPriority,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final total = highPriority + mediumPriority + lowPriority;
+
+    if (total == 0) {
+      return const Center(child: Text("No Data"));
+    }
+
+    return CustomPaint(
+      size: const Size(120, 120),
+      painter: _DonutPainter(
+        highPriority,
+        mediumPriority,
+        lowPriority,
+        total,
+      ),
+      child: const Center(
+        child: SizedBox(
+          width: 40,
+          height: 40,
+        ),
+      ),
+    );
+  }
+}
+
+class _DonutPainter extends CustomPainter {
+  final double high;
+  final double medium;
+  final double low;
+  final double total;
+
+  _DonutPainter(this.high, this.medium, this.low, this.total);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const strokeWidth = 14.0;
+
+    final rect = Rect.fromCircle(
+      center: Offset(size.width / 2, size.height / 2),
+      radius: 50,
+    );
+
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.butt;
+
+    double startAngle = -pi / 2;
+
+    final highAngle = (high / total) * 2 * pi;
+    paint.color = Colors.red;
+    canvas.drawArc(rect, startAngle, highAngle, false, paint);
+    startAngle += highAngle;
+
+    final mediumAngle = (medium / total) * 2 * pi;
+    paint.color = Colors.orange;
+    canvas.drawArc(rect, startAngle, mediumAngle, false, paint);
+    startAngle += mediumAngle;
+
+    final lowAngle = (low / total) * 2 * pi;
+    paint.color = Colors.teal;
+    canvas.drawArc(rect, startAngle, lowAngle, false, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => true;
+}
+
+class _PriorityItem extends StatelessWidget {
+  final String label;
+  final int count;
+  final Color color;
+
+  const _PriorityItem({
+    required this.label,
+    required this.count,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: Colors.grey),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            count.toString(),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
