@@ -160,7 +160,6 @@ class EmployeeDetailsPage extends StatelessWidget {
                   ),
                 ),
               ),
-              title: const Text('Employee Profile'),
             ),
             SliverToBoxAdapter(
               child: Padding(
