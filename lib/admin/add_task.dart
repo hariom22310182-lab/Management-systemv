@@ -7,7 +7,10 @@ import 'package:managementt/controller/task_controller.dart';
 import 'package:managementt/model/task.dart';
 
 class AddTask extends StatefulWidget {
-  const AddTask({super.key});
+  final String defaultType;
+  final String? parentTaskId;
+
+  const AddTask({super.key, this.defaultType = 'PROJECT', this.parentTaskId});
 
   @override
   State<AddTask> createState() => _AddTaskState();
@@ -886,9 +889,10 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
         title: titleController.text,
         description: descriptionController.text,
         priority: priorityController.value,
-        type: 'PROJECT',
+        type: widget.defaultType,
         status: 'NOT_STARTED',
         ownerId: selectedMemberId.value,
+        parentTaskId: widget.parentTaskId,
         deadLine: selectedDeadline.value,
         startDate: DateTime.now(),
       ),

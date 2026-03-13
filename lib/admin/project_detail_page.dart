@@ -1,0 +1,794 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:managementt/admin/add_task.dart';
+import 'package:managementt/components/app_colors.dart';
+import 'package:managementt/controller/task_controller.dart';
+import 'package:managementt/model/task.dart';
+
+class ProjectDetailPage extends StatefulWidget {
+  final Task project;
+  final List<String> projectMemberNames;
+
+  const ProjectDetailPage({
+    super.key,
+    required this.project,
+    this.projectMemberNames = const [],
+  });
+
+  @override
+  State<ProjectDetailPage> createState() => _ProjectDetailPageState();
+}
+
+class _ProjectDetailPageState extends State<ProjectDetailPage> {
+  final TaskController _taskController = Get.find<TaskController>();
+  final RxString _selectedFilter = 'ALL'.obs;
+
+  List<Task> get _projectTasks {
+    final parentId = widget.project.id;
+    if (parentId == null || parentId.isEmpty) {
+      return <Task>[];
+    }
+
+    final all = _taskController.tasks.where((t) {
+      final isTask = (t.type ?? '').toUpperCase() == 'TASK';
+      return isTask && t.parentTaskId == parentId;
+    }).toList();
+
+    final f = _selectedFilter.value;
+    if (f == 'ALL') return all;
+
+    return all.where((t) {
+      final status = (t.status ?? '').toUpperCase();
+      switch (f) {
+        case 'TODO':
+          return status == 'TODO' || status == 'NOT_STARTED';
+        case 'IN_PROGRESS':
+          return status == 'IN_PROGRESS';
+        case 'REVIEW':
+          return status == 'REVIEW';
+        case 'DONE':
+          return status == 'DONE' || status == 'COMPLETED';
+        default:
+          return true;
+      }
+    }).toList();
+  }
+
+  int _countFor(String filter) {
+    final parentId = widget.project.id;
+    if (parentId == null || parentId.isEmpty) return 0;
+
+    final all = _taskController.tasks.where((t) {
+      final isTask = (t.type ?? '').toUpperCase() == 'TASK';
+      return isTask && t.parentTaskId == parentId;
+    }).toList();
+
+    switch (filter) {
+      case 'ALL':
+        return all.length;
+      case 'TODO':
+        return all
+            .where(
+              (t) =>
+                  (t.status ?? '').toUpperCase() == 'TODO' ||
+                  (t.status ?? '').toUpperCase() == 'NOT_STARTED',
+            )
+            .length;
+      case 'IN_PROGRESS':
+        return all
+            .where((t) => (t.status ?? '').toUpperCase() == 'IN_PROGRESS')
+            .length;
+      case 'REVIEW':
+        return all
+            .where((t) => (t.status ?? '').toUpperCase() == 'REVIEW')
+            .length;
+      case 'DONE':
+        return all
+            .where(
+              (t) =>
+                  (t.status ?? '').toUpperCase() == 'DONE' ||
+                  (t.status ?? '').toUpperCase() == 'COMPLETED',
+            )
+            .length;
+      default:
+        return 0;
+    }
+  }
+
+  String _deadlineText(DateTime? d) {
+    if (d == null) return '-';
+    final today = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
+    final target = DateTime(d.year, d.month, d.day);
+    final diff = target.difference(today).inDays;
+    if (diff < 0) return '${-diff}d overdue';
+    if (diff == 0) return 'Today';
+    return '${d.month}/${d.day}/${d.year}';
+  }
+
+  String _dateShort(DateTime? d) {
+    if (d == null) return '-';
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${months[d.month - 1]} ${d.day}, ${d.year}';
+  }
+
+  String _memberShort(String name) {
+    final clean = name.trim();
+    if (clean.isEmpty) return '?';
+    if (clean.length == 1) return clean.toUpperCase();
+    return clean.substring(0, 2).toUpperCase();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final topPad = MediaQuery.of(context).padding.top;
+    final project = widget.project;
+    final progress = (project.progress / 100).clamp(0.0, 1.0);
+
+    final members = widget.projectMemberNames.isNotEmpty
+        ? widget.projectMemberNames
+        : [project.ownerId];
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF3F4F6),
+      body: Obx(() {
+        final tasks = _projectTasks;
+        final doneCount = _countFor('DONE');
+        final todoCount = _countFor('TODO');
+        final inProgressCount = _countFor('IN_PROGRESS');
+        final overdueCount = tasks
+            .where((t) => (t.status ?? '').toUpperCase() == 'OVERDUE')
+            .length;
+
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.fromLTRB(16, topPad + 12, 16, 22),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF6366F1), Color(0xFF3B5BEE)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        InkWell(
+                          onTap: Get.back,
+                          borderRadius: BorderRadius.circular(22),
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.arrow_back,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                project.description,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.85),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                project.title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 31,
+                                  height: 1.02,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.16),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _dateShort(project.startDate),
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.stripColor(
+                                    priority: project.priority,
+                                    status: project.status,
+                                  ),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(
+                                  _deadlineText(project.deadLine),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                _dateShort(project.deadLine),
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(999),
+                            child: LinearProgressIndicator(
+                              minHeight: 10,
+                              value: progress,
+                              backgroundColor: Colors.white.withValues(
+                                alpha: 0.35,
+                              ),
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Text(
+                                'Progress',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.88),
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                '${project.progress}%',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _SummaryCard(
+                                  icon: Icons.assignment_rounded,
+                                  count: _countFor('ALL'),
+                                  label: 'Total',
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _SummaryCard(
+                                  icon: Icons.check_box_rounded,
+                                  count: doneCount,
+                                  label: 'Done',
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _SummaryCard(
+                                  icon: Icons.loop_rounded,
+                                  count: inProgressCount,
+                                  label: 'Active',
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _SummaryCard(
+                                  icon: Icons.warning_amber_rounded,
+                                  count: overdueCount,
+                                  label: 'Overdue',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                color: const Color(0xFFF3F4F6),
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Project Members',
+                      style: TextStyle(
+                        fontSize: 21,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1F2937),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 14,
+                      runSpacing: 12,
+                      children: members
+                          .map(
+                            (name) => SizedBox(
+                              width: 58,
+                              child: Column(
+                                children: [
+                                  Container(
+                                    width: 42,
+                                    height: 42,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color:
+                                          Colors.primaries[name.hashCode.abs() %
+                                              Colors.primaries.length],
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        _memberShort(name),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    name,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Color(0xFF374151),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ],
+                ),
+              ),
+              Container(height: 1, color: const Color(0xFFE5E7EB)),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Tasks',
+                      style: TextStyle(
+                        fontSize: 34,
+                        fontWeight: FontWeight.w800,
+                        height: 1,
+                      ),
+                    ),
+                    const Spacer(),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Get.to(
+                          () => AddTask(
+                            defaultType: 'TASK',
+                            parentTaskId: widget.project.id,
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Add Task'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF3B5BEE),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _FilterChip(
+                        label: 'All',
+                        count: _countFor('ALL'),
+                        selected: _selectedFilter.value == 'ALL',
+                        onTap: () => _selectedFilter.value = 'ALL',
+                      ),
+                      const SizedBox(width: 8),
+                      _FilterChip(
+                        label: 'Todo',
+                        count: todoCount,
+                        selected: _selectedFilter.value == 'TODO',
+                        onTap: () => _selectedFilter.value = 'TODO',
+                      ),
+                      const SizedBox(width: 8),
+                      _FilterChip(
+                        label: 'In Progress',
+                        count: inProgressCount,
+                        selected: _selectedFilter.value == 'IN_PROGRESS',
+                        onTap: () => _selectedFilter.value = 'IN_PROGRESS',
+                      ),
+                      const SizedBox(width: 8),
+                      _FilterChip(
+                        label: 'Review',
+                        count: _countFor('REVIEW'),
+                        selected: _selectedFilter.value == 'REVIEW',
+                        onTap: () => _selectedFilter.value = 'REVIEW',
+                      ),
+                      const SizedBox(width: 8),
+                      _FilterChip(
+                        label: 'Done',
+                        count: doneCount,
+                        selected: _selectedFilter.value == 'DONE',
+                        onTap: () => _selectedFilter.value = 'DONE',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              if (tasks.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 24, 16, 60),
+                  child: Center(
+                    child: Text(
+                      'No tasks found for this project',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
+                  ),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Column(
+                    children: tasks
+                        .map(
+                          (t) => _TaskCard(
+                            task: t,
+                            deadlineText: _deadlineText(t.deadLine),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+              const SizedBox(height: 28),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+}
+
+class _SummaryCard extends StatelessWidget {
+  final IconData icon;
+  final int count;
+  final String label;
+
+  const _SummaryCard({
+    required this.icon,
+    required this.count,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: Colors.white.withValues(alpha: 0.9), size: 18),
+          const SizedBox(height: 4),
+          Text(
+            '$count',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+              fontSize: 24,
+              height: 1,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.85),
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final int count;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _FilterChip({
+    required this.label,
+    required this.count,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(999),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFF1E2A44) : const Color(0xFFF3F4F6),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: selected ? const Color(0xFF1E2A44) : const Color(0xFFD1D5DB),
+          ),
+        ),
+        child: Text(
+          '$label $count',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: selected ? Colors.white : const Color(0xFF6B7280),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TaskCard extends StatelessWidget {
+  final Task task;
+  final String deadlineText;
+
+  const _TaskCard({required this.task, required this.deadlineText});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDone = AppColors.isCompletedStatus(task.status);
+    final strip = AppColors.stripColor(
+      priority: task.priority,
+      status: task.status,
+    );
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            height: 2,
+            decoration: BoxDecoration(
+              color: strip,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  isDone ? Icons.check_circle : Icons.radio_button_unchecked,
+                  color: isDone ? AppColors.completed : const Color(0xFF94A3B8),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        task.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1F2937),
+                          decoration: isDone
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
+                          decorationColor: const Color(0xFF9CA3AF),
+                          decorationThickness: 2,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        task.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 18,
+                          height: 1.25,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _Badge(
+                            text: isDone ? 'Done' : _statusLabel(task.status),
+                            bg: (isDone ? AppColors.completed : strip)
+                                .withValues(alpha: 0.12),
+                            fg: isDone ? AppColors.completed : strip,
+                          ),
+                          _Badge(
+                            text: deadlineText,
+                            bg: const Color(0xFFFFF4E5),
+                            fg: const Color(0xFFF59E0B),
+                            icon: Icons.calendar_today_rounded,
+                          ),
+                          _Badge(
+                            text: '#${task.priority}',
+                            bg: const Color(0xFFEEF2FF),
+                            fg: const Color(0xFF4F46E5),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _statusLabel(String? status) {
+    final s = (status ?? '').toUpperCase();
+    switch (s) {
+      case 'IN_PROGRESS':
+        return 'In Progress';
+      case 'NOT_STARTED':
+      case 'TODO':
+        return 'Todo';
+      case 'REVIEW':
+        return 'Review';
+      case 'OVERDUE':
+        return 'Overdue';
+      case 'DONE':
+      case 'COMPLETED':
+        return 'Done';
+      default:
+        return 'Task';
+    }
+  }
+}
+
+class _Badge extends StatelessWidget {
+  final String text;
+  final Color bg;
+  final Color fg;
+  final IconData? icon;
+
+  const _Badge({
+    required this.text,
+    required this.bg,
+    required this.fg,
+    this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 10, color: fg),
+            const SizedBox(width: 5),
+          ],
+          Text(
+            text,
+            style: TextStyle(
+              color: fg,
+              fontWeight: FontWeight.w600,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

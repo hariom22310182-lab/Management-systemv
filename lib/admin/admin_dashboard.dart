@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:managementt/admin/project_detail_page.dart';
 import 'package:managementt/components/app_colors.dart';
 import 'package:managementt/components/dashboard_tiles.dart';
 import 'package:managementt/components/donut_chart.dart';
@@ -368,6 +369,16 @@ class AdminDashboard extends StatelessWidget {
                     progress: project.progress / 100.0,
                     teamMembers: [dc.getMemberInitials(project.ownerId)],
                     accentColor: dc.projectAccent(project),
+                    onTap: () {
+                      Get.to(
+                        () => ProjectDetailPage(
+                          project: project,
+                          projectMemberNames: [
+                            dc.getMemberName(project.ownerId),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 );
               }),

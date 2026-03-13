@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:managementt/admin/add_task.dart';
-import 'package:managementt/admin/task_detail_page.dart';
+import 'package:managementt/admin/project_detail_page.dart';
 import 'package:managementt/components/app_colors.dart';
 import 'package:managementt/components/project_card.dart';
 import 'package:managementt/controller/dashboard_controller.dart';
@@ -101,40 +101,43 @@ class ProjectDashboard extends StatelessWidget {
                   const SizedBox(height: 16),
 
                   /// STAT CHIPS
-                  Obx(
-                    () => Wrap(
+                  Obx(() {
+                    final projects = taskController.tasks
+                        .where((t) => (t.type ?? '').toUpperCase() == 'PROJECT')
+                        .toList();
+                    return Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: [
                         _StatChip(
                           label: 'Total',
-                          count: taskController.tasks.length,
+                          count: projects.length,
                           color: const Color(0xFF60A5FA),
                         ),
                         _StatChip(
                           label: 'Active',
-                          count: taskController.tasks
+                          count: projects
                               .where((t) => t.status == 'IN_PROGRESS')
                               .length,
                           color: const Color(0xFF4ADE80),
                         ),
                         _StatChip(
                           label: 'Completed',
-                          count: taskController.tasks
+                          count: projects
                               .where((t) => t.status == 'DONE')
                               .length,
                           color: const Color(0xFFA78BFA),
                         ),
                         _StatChip(
                           label: 'Overdue',
-                          count: taskController.tasks
+                          count: projects
                               .where((t) => t.status == 'OVERDUE')
                               .length,
                           color: const Color(0xFFF87171),
                         ),
                       ],
-                    ),
-                  ),
+                    );
+                  }),
 
                   const SizedBox(height: 14),
 
@@ -181,7 +184,18 @@ class ProjectDashboard extends StatelessWidget {
                   );
                 }
 
-                final filtered = taskController.filteredTasks;
+                final projects = taskController.tasks
+                    .where((t) => (t.type ?? '').toUpperCase() == 'PROJECT')
+                    .toList();
+
+                final query = taskController.searchQuery.value
+                    .trim()
+                    .toLowerCase();
+                final filtered = query.isEmpty
+                    ? projects
+                    : projects
+                          .where((t) => t.title.toLowerCase().contains(query))
+                          .toList();
 
                 if (filtered.isEmpty) {
                   return Padding(
@@ -269,7 +283,14 @@ class ProjectDashboard extends StatelessWidget {
                         teamMembers: [ownerInitials],
                         accentColor: dc.projectAccent(task),
                         onTap: () {
-                          Get.to(() => TaskDetailPage(), arguments: task);
+                          Get.to(
+                            () => ProjectDetailPage(
+                              project: task,
+                              projectMemberNames: [
+                                dc.getMemberName(task.ownerId),
+                              ],
+                            ),
+                          );
                         },
                       ),
                     );
