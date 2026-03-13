@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managementt/components/app_colors.dart';
+import 'package:managementt/components/app_confirm_dialog.dart';
+import 'package:managementt/components/app_render_entrance.dart';
 import 'package:managementt/controller/admin_nav_controller.dart';
 import 'package:managementt/controller/auth_controller.dart';
 import 'package:managementt/controller/profile_controller.dart';
@@ -16,524 +18,539 @@ class MemberProfilePage extends StatelessWidget {
     final topPad = MediaQuery.of(context).padding.top;
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
-      body: Obx(() {
-        final tasks = pc.memberTasks.map((t) {
-          final isCompleted = t.status == 'DONE';
-          Color statusColor;
-          String statusLabel;
-          String dueText;
+      body: AppRenderEntrance(
+        child: Obx(() {
+          final tasks = pc.memberTasks.map((t) {
+            final isCompleted = t.status == 'DONE';
+            Color statusColor;
+            String statusLabel;
+            String dueText;
 
-          switch (t.status) {
-            case 'DONE':
-              statusColor = AppColors.completed;
-              statusLabel = 'Done';
-              break;
-            case 'TODO':
-              statusColor = const Color(0xFF3B82F6);
-              statusLabel = 'In Progress';
-              break;
-            case 'OVERDUE':
-              statusColor = const Color(0xFFEF4444);
-              statusLabel = 'Overdue';
-              break;
-            default:
-              statusColor = const Color(0xFF9CA3AF);
-              statusLabel = 'To Do';
-          }
-
-          if (t.deadLine != null) {
-            final diff = t.deadLine!
-                .difference(
-                  DateTime(
-                    DateTime.now().year,
-                    DateTime.now().month,
-                    DateTime.now().day,
-                  ),
-                )
-                .inDays;
-            if (diff < 0) {
-              dueText = '${-diff}d overdue';
-            } else if (diff == 0) {
-              dueText = 'Today';
-            } else {
-              dueText = '${t.deadLine!.month}/${t.deadLine!.day}';
+            switch (t.status) {
+              case 'DONE':
+                statusColor = AppColors.completed;
+                statusLabel = 'Done';
+                break;
+              case 'TODO':
+                statusColor = const Color(0xFF3B82F6);
+                statusLabel = 'In Progress';
+                break;
+              case 'OVERDUE':
+                statusColor = const Color(0xFFEF4444);
+                statusLabel = 'Overdue';
+                break;
+              default:
+                statusColor = const Color(0xFF9CA3AF);
+                statusLabel = 'To Do';
             }
-          } else {
-            dueText = '';
-          }
 
-          return _TaskItem(
-            title: t.title,
-            project: t.description,
-            status: statusLabel,
-            due: dueText,
-            accent: AppColors.stripColor(
-              priority: t.priority,
-              status: t.status,
-            ),
-            statusColor: statusColor,
-            isCompleted: isCompleted,
-          );
-        }).toList();
+            if (t.deadLine != null) {
+              final diff = t.deadLine!
+                  .difference(
+                    DateTime(
+                      DateTime.now().year,
+                      DateTime.now().month,
+                      DateTime.now().day,
+                    ),
+                  )
+                  .inDays;
+              if (diff < 0) {
+                dueText = '${-diff}d overdue';
+              } else if (diff == 0) {
+                dueText = 'Today';
+              } else {
+                dueText = '${t.deadLine!.month}/${t.deadLine!.day}';
+              }
+            } else {
+              dueText = '';
+            }
 
-        return SingleChildScrollView(
-          child: Column(
-            children: [
-              // ─── Header ───
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.fromLTRB(16, topPad + 12, 16, 20),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF6D70F6), Color(0xFF8986F8)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+            return _TaskItem(
+              title: t.title,
+              project: t.description,
+              status: statusLabel,
+              due: dueText,
+              accent: AppColors.stripColor(
+                priority: t.priority,
+                status: t.status,
+              ),
+              statusColor: statusColor,
+              isCompleted: isCompleted,
+            );
+          }).toList();
+
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                // ─── Header ───
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.fromLTRB(16, topPad + 12, 16, 20),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF6D70F6), Color(0xFF8986F8)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(28),
+                      bottomRight: Radius.circular(28),
+                    ),
                   ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(28),
-                    bottomRight: Radius.circular(28),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Back + settings row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            final nav = Get.find<AdminNavController>();
-                            nav.changePage(0);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(
-                              Icons.arrow_back_rounded,
-                              size: 20,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        InkWell(
-                          onTap: () {
-                            ac.logout();
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(
-                              Icons.logout,
-                              size: 20,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    // Avatar + name row
-                    Row(
-                      children: [
-                        Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF4F46E5),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.25),
-                              width: 2,
-                            ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              pc.initials,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 20,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                pc.memberName,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.3,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                pc.memberRole,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.75),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 3,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  pc.memberRole,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 18),
-                    // Stat pills
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _StatCard(
-                            count: '${pc.totalTasks}',
-                            label: 'Total',
-                            icon: Icons.assignment_rounded,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _StatCard(
-                            count: '${pc.activeTasks}',
-                            label: 'Active',
-                            icon: Icons.play_circle_outline_rounded,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _StatCard(
-                            count: '${pc.doneTasks}',
-                            label: 'Done',
-                            icon: Icons.task_alt_rounded,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _StatCard(
-                            count: '${pc.overdueTasks}',
-                            label: 'Overdue',
-                            icon: Icons.warning_amber_rounded,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              // ─── Contact info card ───
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    _InfoRow(
-                      icon: Icons.email_outlined,
-                      text: pc.memberEmail,
-                      iconColor: const Color(0xFF6366F1),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: Divider(
-                        color: Colors.grey.withValues(alpha: 0.15),
-                        height: 1,
-                      ),
-                    ),
-                    _InfoRow(
-                      icon: Icons.phone_outlined,
-                      text: pc.memberPhone,
-                      iconColor: const Color(0xFF6366F1),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              // ─── Completion rate card ───
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(
-                              0xFF3B5BFD,
-                            ).withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.pie_chart_rounded,
-                            size: 18,
-                            color: Color(0xFF3B5BFD),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Task Completion Rate',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black.withValues(alpha: 0.85),
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          pc.completionPercent,
-                          style: const TextStyle(
-                            color: Color(0xFF3B5BFD),
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: LinearProgressIndicator(
-                        value: pc.completionRate,
-                        minHeight: 6,
-                        backgroundColor: const Color(0xFFEEF0F8),
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          Color(0xFF3B5BFD),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              // ─── Tabs + content ───
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    // Tab bar
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF3F4F8),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Back + settings row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => showProjects.value = false,
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 10,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: !showProjects.value
-                                      ? Colors.white
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(10),
-                                  boxShadow: !showProjects.value
-                                      ? [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.06,
-                                            ),
-                                            blurRadius: 6,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ]
-                                      : null,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    'Tasks (${pc.memberTasks.length})',
-                                    style: TextStyle(
-                                      color: !showProjects.value
-                                          ? const Color(0xFF3B5BFD)
-                                          : const Color(0xFF9CA3AF),
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ),
+                          GestureDetector(
+                            onTap: () {
+                              final nav = Get.find<AdminNavController>();
+                              nav.changePage(0);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.arrow_back_rounded,
+                                size: 20,
+                                color: Colors.white,
                               ),
                             ),
                           ),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => showProjects.value = true,
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 10,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: showProjects.value
-                                      ? Colors.white
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(10),
-                                  boxShadow: showProjects.value
-                                      ? [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.06,
-                                            ),
-                                            blurRadius: 6,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ]
-                                      : null,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    'Projects (${pc.memberProjects.length})',
-                                    style: TextStyle(
-                                      color: showProjects.value
-                                          ? const Color(0xFF3B5BFD)
-                                          : const Color(0xFF9CA3AF),
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ),
+                          InkWell(
+                            onTap: () async {
+                              final confirm = await AppConfirmDialog.show(
+                                title: 'Logout',
+                                message: 'Are you sure you want to logout?',
+                                cancelText: 'Stay',
+                                confirmText: 'Logout',
+                                tone: AppDialogTone.neutral,
+                                icon: Icons.logout_rounded,
+                              );
+
+                              if (confirm == true) {
+                                await ac.logout();
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.logout,
+                                size: 20,
+                                color: Colors.white,
                               ),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 14),
-                    // Content
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      child: showProjects.value
-                          ? pc.memberProjects.isEmpty
-                                ? const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 24),
+                      const SizedBox(height: 16),
+                      // Avatar + name row
+                      Row(
+                        children: [
+                          Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF4F46E5),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.25),
+                                width: 2,
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                pc.initials,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  pc.memberName,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -0.3,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  pc.memberRole,
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.75),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    pc.memberRole,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      // Stat pills
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _StatCard(
+                              count: '${pc.totalTasks}',
+                              label: 'Total',
+                              icon: Icons.assignment_rounded,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _StatCard(
+                              count: '${pc.activeTasks}',
+                              label: 'Active',
+                              icon: Icons.play_circle_outline_rounded,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _StatCard(
+                              count: '${pc.doneTasks}',
+                              label: 'Done',
+                              icon: Icons.task_alt_rounded,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _StatCard(
+                              count: '${pc.overdueTasks}',
+                              label: 'Overdue',
+                              icon: Icons.warning_amber_rounded,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // ─── Contact info card ───
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      _InfoRow(
+                        icon: Icons.email_outlined,
+                        text: pc.memberEmail,
+                        iconColor: const Color(0xFF6366F1),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Divider(
+                          color: Colors.grey.withValues(alpha: 0.15),
+                          height: 1,
+                        ),
+                      ),
+                      _InfoRow(
+                        icon: Icons.phone_outlined,
+                        text: pc.memberPhone,
+                        iconColor: const Color(0xFF6366F1),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // ─── Completion rate card ───
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFF3B5BFD,
+                              ).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(
+                              Icons.pie_chart_rounded,
+                              size: 18,
+                              color: Color(0xFF3B5BFD),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Task Completion Rate',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black.withValues(alpha: 0.85),
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            pc.completionPercent,
+                            style: const TextStyle(
+                              color: Color(0xFF3B5BFD),
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: LinearProgressIndicator(
+                          value: pc.completionRate,
+                          minHeight: 6,
+                          backgroundColor: const Color(0xFFEEF0F8),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            Color(0xFF3B5BFD),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // ─── Tabs + content ───
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      // Tab bar
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3F4F8),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () => showProjects.value = false,
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 10,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: !showProjects.value
+                                        ? Colors.white
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(10),
+                                    boxShadow: !showProjects.value
+                                        ? [
+                                            BoxShadow(
+                                              color: Colors.black.withValues(
+                                                alpha: 0.06,
+                                              ),
+                                              blurRadius: 6,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ]
+                                        : null,
+                                  ),
+                                  child: Center(
                                     child: Text(
-                                      'No projects assigned',
+                                      'Tasks (${pc.memberTasks.length})',
                                       style: TextStyle(
-                                        color: Color(0xFF9CA3AF),
+                                        color: !showProjects.value
+                                            ? const Color(0xFF3B5BFD)
+                                            : const Color(0xFF9CA3AF),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
                                       ),
                                     ),
-                                  )
-                                : Column(
-                                    key: const ValueKey('projects'),
-                                    children: pc.memberProjects
-                                        .map(
-                                          (p) => _ProjectMiniCard(
-                                            item: _ProjectItem(
-                                              title: p.title,
-                                              company: p.description,
-                                              progress: p.progress / 100.0,
-                                              progressText: '${p.progress}%',
-                                              taskSummary:
-                                                  '${p.completedTask}/${p.completedTask + p.remainingTask} tasks completed',
-                                              dueText: _formatDeadline(
-                                                p.deadLine,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () => showProjects.value = true,
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 10,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: showProjects.value
+                                        ? Colors.white
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(10),
+                                    boxShadow: showProjects.value
+                                        ? [
+                                            BoxShadow(
+                                              color: Colors.black.withValues(
+                                                alpha: 0.06,
                                               ),
-                                              accent: AppColors.stripColor(
-                                                priority: p.priority,
-                                                status: p.status,
-                                              ),
-                                              dueColor: _deadlineColor(
-                                                p.deadLine,
+                                              blurRadius: 6,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ]
+                                        : null,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      'Projects (${pc.memberProjects.length})',
+                                      style: TextStyle(
+                                        color: showProjects.value
+                                            ? const Color(0xFF3B5BFD)
+                                            : const Color(0xFF9CA3AF),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      // Content
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 250),
+                        child: showProjects.value
+                            ? pc.memberProjects.isEmpty
+                                  ? const Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 24,
+                                      ),
+                                      child: Text(
+                                        'No projects assigned',
+                                        style: TextStyle(
+                                          color: Color(0xFF9CA3AF),
+                                        ),
+                                      ),
+                                    )
+                                  : Column(
+                                      key: const ValueKey('projects'),
+                                      children: pc.memberProjects
+                                          .map(
+                                            (p) => _ProjectMiniCard(
+                                              item: _ProjectItem(
+                                                title: p.title,
+                                                company: p.description,
+                                                progress: p.progress / 100.0,
+                                                progressText: '${p.progress}%',
+                                                taskSummary:
+                                                    '${p.completedTask}/${p.completedTask + p.remainingTask} tasks completed',
+                                                dueText: _formatDeadline(
+                                                  p.deadLine,
+                                                ),
+                                                accent: AppColors.stripColor(
+                                                  priority: p.priority,
+                                                  status: p.status,
+                                                ),
+                                                dueColor: _deadlineColor(
+                                                  p.deadLine,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        )
-                                        .toList(),
-                                  )
-                          : tasks.isEmpty
-                          ? const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 24),
-                              child: Text(
-                                'No tasks assigned',
-                                style: TextStyle(color: Color(0xFF9CA3AF)),
+                                          )
+                                          .toList(),
+                                    )
+                            : tasks.isEmpty
+                            ? const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 24),
+                                child: Text(
+                                  'No tasks assigned',
+                                  style: TextStyle(color: Color(0xFF9CA3AF)),
+                                ),
+                              )
+                            : Column(
+                                key: const ValueKey('tasks'),
+                                children: tasks
+                                    .map((t) => _TaskCard(item: t))
+                                    .toList(),
                               ),
-                            )
-                          : Column(
-                              key: const ValueKey('tasks'),
-                              children: tasks
-                                  .map((t) => _TaskCard(item: t))
-                                  .toList(),
-                            ),
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              // bottom padding for nav bar
-              const SizedBox(height: 100),
-            ],
-          ),
-        );
-      }),
+                // bottom padding for nav bar
+                const SizedBox(height: 100),
+              ],
+            ),
+          );
+        }),
+      ),
     );
   }
 

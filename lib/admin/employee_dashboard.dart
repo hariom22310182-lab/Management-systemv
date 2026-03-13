@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'package:managementt/admin/register_employee.dart';
 import 'package:managementt/admin/employee_details_page.dart';
 import 'package:managementt/components/app_colors.dart';
+import 'package:managementt/components/app_confirm_dialog.dart';
+import 'package:managementt/components/app_render_entrance.dart';
 import 'package:managementt/controller/member_controller.dart';
 import 'package:managementt/controller/task_controller.dart';
 import 'package:managementt/model/member.dart';
@@ -85,197 +87,197 @@ class EmployeeDashboard extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            /// HEADER
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.fromLTRB(20, topPad + 16, 20, 24),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF7C3AED), Color(0xFF4338CA)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+      body: AppRenderEntrance(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              /// HEADER
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.fromLTRB(20, topPad + 16, 20, 24),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF7C3AED), Color(0xFF4338CA)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(26),
+                    bottomRight: Radius.circular(26),
+                  ),
                 ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(26),
-                  bottomRight: Radius.circular(26),
-                ),
-              ),
 
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  /// TITLE ROW
-                  Row(
-                    children: [
-                      const Text(
-                        "Employee Dashboard",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-
-                      const Spacer(),
-
-                      InkWell(
-                        onTap: () {
-                          Get.to(() => RegisterEmployees());
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const FaIcon(
-                            FontAwesomeIcons.plus,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    /// TITLE ROW
+                    Row(
+                      children: [
+                        const Text(
+                          "Employee Dashboard",
+                          style: TextStyle(
                             color: Colors.white,
-                            size: 16,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
+
+                        const Spacer(),
+
+                        InkWell(
+                          onTap: () {
+                            Get.to(() => RegisterEmployees());
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const FaIcon(
+                              FontAwesomeIcons.plus,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 4),
+
+                    Text(
+                      "Team overview · $formattedDate",
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        fontSize: 13,
                       ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 4),
-
-                  Text(
-                    "Team overview · $formattedDate",
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.7),
-                      fontSize: 13,
                     ),
-                  ),
 
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                  /// EMPLOYEE COUNT (reactive)
-                  Obx(
-                    () => Text(
-                      "${memberController.members.length} total employees",
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  /// SEARCH (reactive with GetX)
-                  SizedBox(
-                    height: 44,
-                    child: TextField(
-                      onChanged: (val) =>
-                          memberController.searchQuery.value = val,
-                      decoration: InputDecoration(
-                        hintText: "Search employees..",
-                        hintStyle: const TextStyle(
-                          color: Colors.white70,
+                    /// EMPLOYEE COUNT (reactive)
+                    Obx(
+                      () => Text(
+                        "${memberController.members.length} total employees",
+                        style: const TextStyle(
+                          color: Colors.white,
                           fontSize: 14,
                         ),
-                        filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.12),
-                        prefixIcon: const Icon(
-                          Icons.search,
-                          color: Colors.white70,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
                       ),
-                      style: const TextStyle(color: Colors.white),
                     ),
-                  ),
-                ],
+
+                    const SizedBox(height: 10),
+
+                    /// SEARCH (reactive with GetX)
+                    SizedBox(
+                      height: 44,
+                      child: TextField(
+                        onChanged: (val) =>
+                            memberController.searchQuery.value = val,
+                        decoration: InputDecoration(
+                          hintText: "Search employees..",
+                          hintStyle: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white.withValues(alpha: 0.12),
+                          prefixIcon: const Icon(
+                            Icons.search,
+                            color: Colors.white70,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            /// EMPLOYEE LIST
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Obx(() {
-                if (memberController.isLoading.value) {
-                  return const Padding(
-                    padding: EdgeInsets.all(30),
-                    child: CircularProgressIndicator(),
-                  );
-                }
+              /// EMPLOYEE LIST
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Obx(() {
+                  if (memberController.isLoading.value) {
+                    return const Padding(
+                      padding: EdgeInsets.all(30),
+                      child: CircularProgressIndicator(),
+                    );
+                  }
 
-                final filtered = memberController.filteredMembers;
+                  final filtered = memberController.filteredMembers;
 
-                if (filtered.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.all(30),
-                    child: Text("No Members Found"),
-                  );
-                }
+                  if (filtered.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.all(30),
+                      child: Text("No Members Found"),
+                    );
+                  }
 
-                return ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: filtered.length,
-                  padding: EdgeInsets.zero,
-                  itemBuilder: (context, index) {
-                    final member = filtered[index];
-                    final memberId = member.id ?? '';
-                    final projectCount = memberId.isEmpty
-                        ? 0
-                        : _projectCount(memberId);
-                    final activeProjectCount = memberId.isEmpty
-                        ? 0
-                        : _activeProjectCount(memberId);
-                    final taskCount = memberId.isEmpty
-                        ? 0
-                        : _taskCount(memberId);
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filtered.length,
+                    padding: EdgeInsets.zero,
+                    itemBuilder: (context, index) {
+                      final member = filtered[index];
+                      final memberId = member.id ?? '';
+                      final projectCount = memberId.isEmpty
+                          ? 0
+                          : _projectCount(memberId);
+                      final activeProjectCount = memberId.isEmpty
+                          ? 0
+                          : _activeProjectCount(memberId);
+                      final taskCount = memberId.isEmpty
+                          ? 0
+                          : _taskCount(memberId);
 
-                    return InkWell(
-                      onTap: () {
-                        Get.to(() => EmployeeDetailsPage(), arguments: member);
-                      },
-
-                      child: _EmployeeCard(
-                        member: member,
-                        initials: _initials(member.name),
-                        projectCount: projectCount,
-                        activeProjectCount: activeProjectCount,
-                        taskCount: taskCount,
-                        onDelete: () {
-                          Get.dialog(
-                            AlertDialog(
-                              title: const Text("Confirm Remove"),
-                              content: Text("Remove ${member.name} ?"),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Get.back(),
-                                  child: const Text("Cancel"),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    if (member.id != null) {
-                                      memberController.removeMember(member.id!);
-                                    }
-                                    Get.back();
-                                  },
-                                  child: const Text("Delete"),
-                                ),
-                              ],
-                            ),
+                      return InkWell(
+                        onTap: () {
+                          Get.to(
+                            () => EmployeeDetailsPage(),
+                            arguments: member,
                           );
                         },
-                      ),
-                    );
-                  },
-                );
-              }),
-            ),
 
-            const SizedBox(height: 100),
-          ],
+                        child: _EmployeeCard(
+                          member: member,
+                          initials: _initials(member.name),
+                          projectCount: projectCount,
+                          activeProjectCount: activeProjectCount,
+                          taskCount: taskCount,
+                          onDelete: () async {
+                            final confirmed = await AppConfirmDialog.show(
+                              title: 'Delete Employee',
+                              message: 'Remove ${member.name} from employees?',
+                              cancelText: 'Cancel',
+                              confirmText: 'Delete',
+                              tone: AppDialogTone.danger,
+                              icon: Icons.person_remove_alt_1_rounded,
+                            );
+
+                            if (!confirmed) return;
+                            if (member.id != null) {
+                              memberController.removeMember(member.id!);
+                            }
+                          },
+                        ),
+                      );
+                    },
+                  );
+                }),
+              ),
+
+              const SizedBox(height: 100),
+            ],
+          ),
         ),
       ),
     );

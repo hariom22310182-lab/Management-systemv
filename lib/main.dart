@@ -33,6 +33,8 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Management System',
+      defaultTransition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 180),
       theme: ThemeData(
         useMaterial3: true,
         scaffoldBackgroundColor: AppColors.background,

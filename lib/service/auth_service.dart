@@ -53,13 +53,4 @@ class AuthService {
       // Best-effort — still clear local session even if backend call fails.
     }
   }
-
-  String _parseError(String body) {
-    try {
-      final data = jsonDecode(body);
-      return data['message'] ?? 'Login failed';
-    } catch (_) {
-      return 'Login failed';
-    }
-  }
 }

@@ -69,7 +69,10 @@ class MemberController extends GetxController {
   Future<void> getMembers() async {
     isLoading.value = true;
     try {
-      members.value = await _memberService.getMembers();
+      final loaded = await _memberService.getMembers();
+      members.value = loaded
+          .where((m) => (m.role ?? '').trim().toUpperCase() == 'USER')
+          .toList();
     } catch (e) {
       print('MemberController: Failed to fetch members — $e');
     } finally {
