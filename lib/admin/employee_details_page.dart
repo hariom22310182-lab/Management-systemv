@@ -3,7 +3,9 @@ import 'package:get/get.dart';
 import 'package:managementt/admin/project_detail_page.dart';
 import 'package:managementt/components/app_colors.dart';
 import 'package:managementt/components/app_render_entrance.dart';
+import 'package:managementt/components/donut_chart.dart';
 import 'package:managementt/controller/task_controller.dart';
+import 'package:managementt/model/dashboard_models.dart';
 import 'package:managementt/model/member.dart';
 import 'package:managementt/model/task.dart';
 
@@ -39,6 +41,108 @@ class EmployeeDetailsPage extends StatelessWidget {
               (p.status ?? '').toUpperCase() == 'COMPLETED',
         )
         .length;
+  }
+
+  int _notStartedProjects(List<Task> projects) {
+    return projects
+        .where((p) => (p.status ?? '').toUpperCase() == 'NOT_STARTED')
+        .length;
+  }
+
+  int _overdueProjects(List<Task> projects) {
+    return projects
+        .where((p) => (p.status ?? '').toUpperCase() == 'OVERDUE')
+        .length;
+  }
+
+  int _completedTasks(List<Task> tasks) {
+    return tasks
+        .where(
+          (t) =>
+              (t.status ?? '').toUpperCase() == 'DONE' ||
+              (t.status ?? '').toUpperCase() == 'COMPLETED',
+        )
+        .length;
+  }
+
+  int _inProgressTasks(List<Task> tasks) {
+    return tasks
+        .where((t) => (t.status ?? '').toUpperCase() == 'IN_PROGRESS')
+        .length;
+  }
+
+  int _notStartedTasks(List<Task> tasks) {
+    return tasks
+        .where(
+          (t) =>
+              (t.status ?? '').toUpperCase() == 'NOT_STARTED' ||
+              (t.status ?? '').toUpperCase() == 'TODO',
+        )
+        .length;
+  }
+
+  int _overdueTasks(List<Task> tasks) {
+    return tasks.where((t) => (t.status ?? '').toUpperCase() == 'OVERDUE').length;
+  }
+
+  List<StatusData> _getProjectStatusData(List<Task> projects) {
+    return [
+      StatusData(
+        label: 'Done',
+        count: _completedProjects(projects),
+        color: AppColors.success,
+      ),
+      StatusData(
+        label: 'In Progress',
+        count: _activeProjects(projects),
+        color: AppColors.info,
+      ),
+      StatusData(
+        label: 'Not Started',
+        count: _notStartedProjects(projects),
+        color: const Color(0xFFD1D5DB),
+      ),
+      StatusData(
+        label: 'Overdue',
+        count: _overdueProjects(projects),
+        color: AppColors.error,
+      ),
+    ];
+  }
+
+  List<StatusData> _getTaskStatusData(List<Task> tasks) {
+    return [
+      StatusData(
+        label: 'Done',
+        count: _completedTasks(tasks),
+        color: AppColors.success,
+      ),
+      StatusData(
+        label: 'In Progress',
+        count: _inProgressTasks(tasks),
+        color: AppColors.info,
+      ),
+      StatusData(
+        label: 'Not Started',
+        count: _notStartedTasks(tasks),
+        color: const Color(0xFFD1D5DB),
+      ),
+      StatusData(
+        label: 'Overdue',
+        count: _overdueTasks(tasks),
+        color: AppColors.error,
+      ),
+    ];
+  }
+
+  bool _isOngoing(Task item) {
+    final status = (item.status ?? '').toUpperCase();
+    return status != 'DONE' && status != 'COMPLETED';
+  }
+
+  bool _isCompleted(Task item) {
+    final status = (item.status ?? '').toUpperCase();
+    return status == 'DONE' || status == 'COMPLETED';
   }
 
   String _deadlineLabel(DateTime? d) {
@@ -213,6 +317,35 @@ class EmployeeDetailsPage extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 16),
+                      // Analytics Section
+                      const Text(
+                        'Analytics',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _DonutChartCard(
+                              title: 'Projects by Status',
+                              data: _getProjectStatusData(projects),
+                              total: projects.length,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _DonutChartCard(
+                              title: 'Tasks by Status',
+                              data: _getTaskStatusData(tasks),
+                              total: tasks.length,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
                       const Text(
                         'Details',
                         style: TextStyle(
@@ -227,7 +360,7 @@ class EmployeeDetailsPage extends StatelessWidget {
                       _InfoTile(label: 'Phone', value: member.mobileNo ?? '-'),
                       const SizedBox(height: 18),
                       const Text(
-                        'Projects Led',
+                        'Ongoing Projects',
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
@@ -239,12 +372,12 @@ class EmployeeDetailsPage extends StatelessWidget {
                           padding: EdgeInsets.all(16),
                           child: Center(child: CircularProgressIndicator()),
                         )
-                      else if (projects.isEmpty)
+                      else if (projects.where(_isOngoing).isEmpty)
                         const _EmptySection(
-                          text: 'No projects led by this employee',
+                          text: 'No ongoing projects',
                         )
                       else
-                        ...projects.map(
+                        ...projects.where(_isOngoing).map(
                           (p) => _OwnedItemTile(
                             item: p,
                             deadline: _deadlineLabel(p.deadLine),
@@ -258,7 +391,7 @@ class EmployeeDetailsPage extends StatelessWidget {
                         ),
                       const SizedBox(height: 18),
                       const Text(
-                        'Tasks Assigned (Owner)',
+                        'Completed Projects',
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
@@ -270,12 +403,84 @@ class EmployeeDetailsPage extends StatelessWidget {
                           padding: EdgeInsets.all(16),
                           child: Center(child: CircularProgressIndicator()),
                         )
-                      else if (tasks.isEmpty)
+                      else if (projects.where(_isCompleted).isEmpty)
                         const _EmptySection(
-                          text: 'No tasks assigned to this employee',
+                          text: 'No completed projects',
                         )
                       else
-                        ...tasks.map(
+                        ...projects.where(_isCompleted).map(
+                          (p) => _OwnedItemTile(
+                            item: p,
+                            deadline: _deadlineLabel(p.deadLine),
+                            onTap: () => Get.to(
+                              () => ProjectDetailPage(
+                                project: p,
+                                projectMemberNames: [member.name],
+                              ),
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Ongoing Tasks',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      if (_taskController.isLoading.value)
+                        const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Center(child: CircularProgressIndicator()),
+                        )
+                      else if (tasks.where(_isOngoing).isEmpty)
+                        const _EmptySection(
+                          text: 'No ongoing tasks',
+                        )
+                      else
+                        ...tasks.where(_isOngoing).map(
+                          (t) => _OwnedItemTile(
+                            item: t,
+                            deadline: _deadlineLabel(t.deadLine),
+                            onTap: () {
+                              final parent = _taskController.tasks
+                                  .firstWhereOrNull(
+                                    (candidate) =>
+                                        candidate.id == t.parentTaskId &&
+                                        (candidate.type ?? '').toUpperCase() ==
+                                            'PROJECT',
+                                  );
+                              if (parent == null) return;
+                              Get.to(
+                                () => ProjectDetailPage(
+                                  project: parent,
+                                  projectMemberNames: [member.name],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Completed Tasks',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      if (_taskController.isLoading.value)
+                        const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Center(child: CircularProgressIndicator()),
+                        )
+                      else if (tasks.where(_isCompleted).isEmpty)
+                        const _EmptySection(
+                          text: 'No completed tasks',
+                        )
+                      else
+                        ...tasks.where(_isCompleted).map(
                           (t) => _OwnedItemTile(
                             item: t,
                             deadline: _deadlineLabel(t.deadLine),
@@ -500,6 +705,96 @@ class _EmptySection extends StatelessWidget {
         border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
       child: Text(text, style: const TextStyle(color: AppColors.textSecondary)),
+    );
+  }
+}
+
+class _DonutChartCard extends StatelessWidget {
+  final String title;
+  final List<StatusData> data;
+  final int total;
+
+  const _DonutChartCard({
+    required this.title,
+    required this.data,
+    required this.total,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF374151),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Center(
+            child: SizedBox(
+              height: 80,
+              width: 80,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  CustomPaint(
+                    size: const Size(80, 80),
+                    painter: DonutChartPainter(data),
+                  ),
+                  Text(
+                    '$total',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Legend
+          ...data.where((d) => d.count > 0).map(
+            (d) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: d.color,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      '${d.label}: ${d.count}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

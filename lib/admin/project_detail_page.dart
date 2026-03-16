@@ -26,6 +26,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   final TaskController _taskController = Get.find<TaskController>();
   final MemberController _memberController = Get.find<MemberController>();
   final RxString _selectedFilter = 'ALL'.obs;
+  final RxString _taskSearchQuery = ''.obs;
 
   Future<void> _approveTask(Task task) async {
     final taskId = task.id;
@@ -77,11 +78,23 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
       return <Task>[];
     }
 
-    final all = _taskController.tasks.where((t) {
+    var all = _taskController.tasks.where((t) {
       final isTask = (t.type ?? '').toUpperCase() == 'TASK';
       return isTask && t.parentTaskId == parentId;
     }).toList();
 
+    // Apply search filter
+    final searchQuery = _taskSearchQuery.value.trim().toLowerCase();
+    if (searchQuery.isNotEmpty) {
+      all = all.where((t) {
+        final titleMatch = t.title.toLowerCase().contains(searchQuery);
+        final ownerName = _memberNameById(t.ownerId).toLowerCase();
+        final ownerMatch = ownerName.contains(searchQuery);
+        return titleMatch || ownerMatch;
+      }).toList();
+    }
+
+    // Apply status filter
     final f = _selectedFilter.value;
     if (f == 'ALL') return all;
 
@@ -455,7 +468,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                                   label: 'Total',
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 6),
                               Expanded(
                                 child: _SummaryCard(
                                   icon: Icons.check_box_rounded,
@@ -463,7 +476,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                                   label: 'Done',
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 6),
                               Expanded(
                                 child: _SummaryCard(
                                   icon: Icons.loop_rounded,
@@ -471,7 +484,15 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                                   label: 'Active',
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: _SummaryCard(
+                                  icon: Icons.rate_review_rounded,
+                                  count: _countFor('REVIEW'),
+                                  label: 'Review',
+                                ),
+                              ),
+                              const SizedBox(width: 6),
                               Expanded(
                                 child: _SummaryCard(
                                   icon: Icons.warning_amber_rounded,
@@ -606,6 +627,33 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                       ),
                     ),
                   ],
+                ),
+              ),
+              // Task Search Bar
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                child: TextField(
+                  onChanged: (val) => _taskSearchQuery.value = val,
+                  decoration: InputDecoration(
+                    hintText: "Search tasks by name or assignee…",
+                    hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+                    filled: true,
+                    fillColor: Colors.white,
+                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFF3B5BEE)),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
                 ),
               ),
               Padding(

@@ -23,14 +23,21 @@ class ProjectPaginationController extends PaginationController<Task> {
 
   /// Get filtered list based on search query.
   /// Filters from already loaded items, not from API.
-  List<Task> getFilteredItems() {
+  /// Searches by both project title and owner name.
+  List<Task> getFilteredItems(String Function(String ownerId)? getOwnerName) {
     final query = searchQuery.value.trim().toLowerCase();
     if (query.isEmpty) {
       return items.toList();
     }
-    return items
-        .where((project) => project.title.toLowerCase().contains(query))
-        .toList();
+    return items.where((project) {
+      final titleMatch = project.title.toLowerCase().contains(query);
+      if (getOwnerName != null) {
+        final ownerName = getOwnerName(project.ownerId).toLowerCase();
+        final ownerMatch = ownerName.contains(query);
+        return titleMatch || ownerMatch;
+      }
+      return titleMatch;
+    }).toList();
   }
 
   @override

@@ -17,6 +17,23 @@ class UserTaskDetailPage extends StatefulWidget {
 
 class _UserTaskDetailPageState extends State<UserTaskDetailPage> {
   final TaskController _taskController = Get.find<TaskController>();
+  final RxList<Task> _subtasks = <Task>[].obs;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSubtasks();
+  }
+
+  void _loadSubtasks() {
+    final taskId = widget.task.id;
+    if (taskId == null || taskId.isEmpty) return;
+
+    // Filter tasks where parentTaskId matches this task
+    _subtasks.value = _taskController.tasks
+        .where((t) => t.parentTaskId == taskId)
+        .toList();
+  }
 
   Future<void> _convertTaskToProjectAndAddSubtasks() async {
     final taskId = widget.task.id;
@@ -55,7 +72,15 @@ class _UserTaskDetailPageState extends State<UserTaskDetailPage> {
       await _taskController.getAllTask();
     }
 
-    Get.to(() => AddTask(defaultType: 'TASK', parentTaskId: taskId));
+    final result = await Get.to(
+      () => AddTask(defaultType: 'TASK', parentTaskId: taskId),
+    );
+
+    // Refresh subtasks when returning from add page
+    if (result == true) {
+      await _taskController.getAllTask();
+    }
+    _loadSubtasks();
   }
 
   Future<void> _submitForReview() async {
@@ -358,7 +383,7 @@ class _UserTaskDetailPageState extends State<UserTaskDetailPage> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  // Subtasks section (placeholder)
+                  // Subtasks section
                   Text(
                     'Subtasks',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -366,22 +391,32 @@ class _UserTaskDetailPageState extends State<UserTaskDetailPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFE5E7EB)),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'Subtasks will appear here once added',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: AppColors.textSecondary),
-                      ),
-                    ),
-                  ),
+                  Obx(() {
+                    if (_subtasks.isEmpty) {
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFE5E7EB)),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'No subtasks yet. Click "Add Subtasks" to create one.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: AppColors.textSecondary),
+                          ),
+                        ),
+                      );
+                    }
+
+                    return Column(
+                      children: _subtasks
+                          .map((subtask) => _SubtaskCard(subtask: subtask))
+                          .toList(),
+                    );
+                  }),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -420,6 +455,92 @@ class _InfoRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SubtaskCard extends StatelessWidget {
+  final Task subtask;
+
+  const _SubtaskCard({required this.subtask});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDone = AppColors.isCompletedStatus(subtask.status);
+    final statusColor = AppColors.stripColor(
+      priority: subtask.priority,
+      status: subtask.status,
+    );
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isDone ? Icons.check : Icons.pending_outlined,
+              size: 16,
+              color: statusColor,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  subtask.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    decoration: isDone ? TextDecoration.lineThrough : null,
+                    color: const Color(0xFF1F2937),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtask.description,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              subtask.status ?? 'TODO',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: statusColor,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

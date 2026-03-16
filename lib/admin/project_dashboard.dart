@@ -179,7 +179,7 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                               onChanged: (val) =>
                                   paginationController.updateSearchQuery(val),
                               decoration: InputDecoration(
-                                hintText: "Search projects…",
+                                hintText: "Search by project name or owner…",
                                 hintStyle: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 14,
@@ -213,8 +213,10 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                 ),
                 sliver: Obx(() {
                   final state = paginationController.paginationState.value;
+                  final filteredProjects = paginationController
+                      .getFilteredItems((ownerId) => dc.getMemberName(ownerId));
 
-                  if (paginationController.isEmpty &&
+                  if (filteredProjects.isEmpty &&
                       !state.isLoading &&
                       state.error == null) {
                     return SliverToBoxAdapter(
@@ -240,7 +242,7 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                     );
                   }
 
-                  if (paginationController.isEmpty && state.isLoading) {
+                  if (filteredProjects.isEmpty && state.isLoading) {
                     return SliverToBoxAdapter(
                       child: const Padding(
                         padding: EdgeInsets.all(40),
@@ -250,23 +252,23 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                   }
 
                   return SliverList.builder(
-                    itemCount: paginationController.items.length + 2,
+                    itemCount: filteredProjects.length + 2,
                     itemBuilder: (context, index) {
                       // Show loading indicator at bottom
-                      if (index == paginationController.items.length) {
+                      if (index == filteredProjects.length) {
                         return PaginationLoadingIndicator(
                           isLoading: state.isLoading,
                         );
                       }
 
                       // Show end-of-list indicator
-                      if (index == paginationController.items.length + 1) {
+                      if (index == filteredProjects.length + 1) {
                         return EndOfListIndicator(
                           show: !state.hasMore && !state.isLoading,
                         );
                       }
 
-                      final task = paginationController.items[index];
+                      final task = filteredProjects[index];
                       final totalSub = task.completedTask + task.remainingTask;
                       final ownerInitials = dc.getMemberInitials(task.ownerId);
 
@@ -381,4 +383,3 @@ class _StatChip extends StatelessWidget {
     );
   }
 }
-
