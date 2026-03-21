@@ -228,6 +228,7 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                           /// STAT CHIPS
                           Obx(() {
                             final projects = paginationController.items;
+                            final completedCount = dc.completedProjectCount;
                             return Wrap(
                               spacing: 8,
                               runSpacing: 8,
@@ -246,9 +247,7 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                                 ),
                                 _StatChip(
                                   label: 'Completed',
-                                  count: projects
-                                      .where((t) => t.status == 'DONE')
-                                      .length,
+                                  count: completedCount,
                                   color: const Color(0xFFA78BFA),
                                 ),
                                 _StatChip(

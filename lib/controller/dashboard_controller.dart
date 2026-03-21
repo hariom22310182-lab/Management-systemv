@@ -98,6 +98,10 @@ class DashboardController extends GetxController {
   int get activeProjectCount =>
       projects.where((p) => p.status == 'IN_PROGRESS').length;
 
+  int get completedProjectCount => projects
+      .where((p) => p.status == 'DONE' || p.status == 'COMPLETED')
+      .length;
+
   int get totalTaskCount => tasks.length;
 
   int get overdueCount => projects.where((p) => p.status == 'OVERDUE').length;
@@ -138,7 +142,9 @@ class DashboardController extends GetxController {
 
   String get completionPercent {
     if (projects.isEmpty) return '0';
-    final done = projects.where((p) => p.status == 'DONE' || p.status == 'COMPLETED').length;
+    final done = projects
+        .where((p) => p.status == 'DONE' || p.status == 'COMPLETED')
+        .length;
     return ((done / projects.length) * 100).toStringAsFixed(0);
   }
 

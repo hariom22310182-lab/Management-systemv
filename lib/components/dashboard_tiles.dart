@@ -16,9 +16,9 @@ class AlertTile extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
         decoration: BoxDecoration(
-          color: AppColors.alertBackground,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.alertBorder),
+          border: Border.all(color: const Color.fromARGB(255, 255, 158, 162)),
         ),
         child: Row(
           children: [
