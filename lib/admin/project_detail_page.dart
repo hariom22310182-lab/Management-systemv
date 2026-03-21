@@ -305,17 +305,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                project.description,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.85),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
                                 project.title,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -326,6 +315,18 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
+                              const SizedBox(height: 4),
+                              if (project.description.trim().isNotEmpty)
+                                Text(
+                                  project.description,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.85),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                             ],
                           ),
                         ),
@@ -375,7 +376,30 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Project Progress',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.88),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                '${project.progress}%',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(height: 6),
                           ClipRRect(
                             borderRadius: BorderRadius.circular(999),
                             child: LinearProgressIndicator(
@@ -392,65 +416,61 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 6),
+
+                          const SizedBox(height: 14),
+
                           Row(
-                            children: [
-                              Text(
-                                'Project Progress',
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.88),
-                                ),
-                              ),
-                              const Spacer(),
-                              Text(
-                                '${project.progress}%',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 18,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(999),
-                            child: LinearProgressIndicator(
-                              minHeight: 10,
-                              value: remainingTimeProgress,
-                              backgroundColor: Colors.white.withValues(
-                                alpha: 0.35,
-                              ),
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 'Time Remaining',
                                 style: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.88),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              const Spacer(),
+
                               Text(
-                                '${(remainingTimeProgress * 100).toStringAsFixed(0)}%',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 18,
+                                '${_dateShort(project.startDate)} - ${_dateShort(project.deadLine)}',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                  fontSize: 12,
+                                ),
+                              ),
+                              Text(
+                                _deadlineText(project.deadLine),
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.85),
+                                  fontSize: 13,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+
+                          const SizedBox(height: 6),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(999),
+                            child: LinearProgressIndicator(
+                              minHeight: 10,
+                              value: remainingTimeProgress.clamp(0.0, 1.0),
+                              backgroundColor: Colors.white.withValues(
+                                alpha: 0.2,
+                              ),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.stripColor(
+                                  priority: project.priority,
+                                  status: project.status,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
                           Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              'Contribution remaining to assign: $_remainingContribution%',
+                              'Task Snapshot',
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.88),
                                 fontSize: 12,
@@ -502,6 +522,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                               ),
                             ],
                           ),
+                          const SizedBox(height: 6),
                         ],
                       ),
                     ),
@@ -636,7 +657,10 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                   onChanged: (val) => _taskSearchQuery.value = val,
                   decoration: InputDecoration(
                     hintText: "Search tasks by name or assignee…",
-                    hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+                    hintStyle: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
                     filled: true,
                     fillColor: Colors.white,
                     prefixIcon: const Icon(Icons.search, color: Colors.grey),
