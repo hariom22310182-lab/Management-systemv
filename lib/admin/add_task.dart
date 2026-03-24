@@ -147,8 +147,8 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
     selectedMemberId.value = task.ownerId;
     final category = (task.category ?? '').trim().toUpperCase();
     selectedCategory.value = _categoryController.categories.contains(category)
-      ? category
-      : '';
+        ? category
+        : '';
     selectedDeadline.value = task.deadLine;
     selectedStartDate.value = task.startDate;
     criticalDaysController.text = task.criticalDays.toString();
@@ -381,9 +381,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
                                 children: [
                                   _buildLabel("Category (Optional)"),
                                   const SizedBox(height: 8),
-                                  Obx(
-                                    () => _buildCategoryDropdown(),
-                                  ),
+                                  Obx(() => _buildCategoryDropdown()),
                                 ],
                               ),
                             ),
@@ -401,21 +399,38 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
                                     () => Row(
                                       children: [
                                         _buildPriorityChip(
-                                          "high",
-                                          "High",
+                                          "Critical",
+                                          "Critical",
                                           Icons.bolt_rounded,
-                                          color: AppColors.priorityHigh,
+                                          color: const Color.fromARGB(
+                                            255,
+                                            255,
+                                            0,
+                                            0,
+                                          ),
                                         ),
                                         const SizedBox(width: 10),
                                         _buildPriorityChip(
-                                          "medium",
-                                          "Medium",
+                                          "High",
+                                          "High",
+                                          Icons.bolt_rounded,
+                                          color: const Color.fromARGB(
+                                            255,
+                                            255,
+                                            120,
+                                            10,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        _buildPriorityChip(
+                                          "Moderate",
+                                          "Moderate",
                                           Icons.remove_circle_outline,
                                           color: AppColors.priorityMedium,
                                         ),
                                         const SizedBox(width: 10),
                                         _buildPriorityChip(
-                                          "low",
+                                          "Low",
                                           "Low",
                                           Icons.arrow_downward_rounded,
                                           color: AppColors.priorityLow,
@@ -1009,10 +1024,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
           .map(
             (category) => DropdownMenuItem<String>(
               value: category,
-              child: Text(
-                category,
-                style: const TextStyle(fontSize: 14),
-              ),
+              child: Text(category, style: const TextStyle(fontSize: 14)),
             ),
           )
           .toList(),
