@@ -20,7 +20,7 @@ class StatCard extends StatelessWidget {
     return Container(
       height: 76,
       decoration: BoxDecoration(
-        color: AppColors.primaryDark,
+        color: const Color.fromARGB(118, 255, 92, 92),
         borderRadius: BorderRadius.circular(11),
       ),
       child: Column(

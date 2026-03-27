@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managementt/components/app_colors.dart';
 import 'package:managementt/controller/category_controller.dart';
+import 'package:managementt/controller/collaboration_controller.dart';
 import 'package:managementt/controller/member_controller.dart';
 import 'package:managementt/controller/task_controller.dart';
 import 'package:managementt/model/task.dart';
@@ -40,6 +41,8 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
   final TaskController _taskController = Get.find<TaskController>();
   final MemberController _memberController = Get.find<MemberController>();
   final CategoryController _categoryController = Get.find<CategoryController>();
+  final CollaborationController _collaborationController =
+      Get.find<CollaborationController>();
 
   // Animation controllers
   late final AnimationController _bgController;
@@ -55,6 +58,8 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
   late final List<Animation<double>> _fieldFades;
   late final List<Animation<Offset>> _fieldSlides;
   late final Animation<double> _pulseScale;
+
+  final _projectId = Get.arguments as String?;
 
   @override
   void initState() {
@@ -137,6 +142,10 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
     _prefillForEdit();
 
     _staggerController.forward();
+
+    print(widget.parentId);
+
+    _collaborationController.getAllTasksByCollaboration(widget.parentId ?? '');
   }
 
   void _prefillForEdit() {
@@ -389,6 +398,58 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
                               ),
                             ),
                             const SizedBox(height: 20),
+
+                            // _buildLabel("Add Project Dependency"),
+                            // IconButton(
+                            //   icon: Icon(Icons.add),
+                            //   onPressed: () {
+                            //     showModalBottomSheet(
+                            //       context: context,
+                            //       builder: (context) {
+                            //         return SizedBox(
+                            //           height: 200,
+                            //           child: Obx(() {
+                            //             final data = _collaborationController
+                            //                 .tasksOfCollaboration;
+
+                            //             return ListView(
+                            //               shrinkWrap: true,
+                            //               children: data.entries.map((entry) {
+                            //                 final projectId = entry.key;
+                            //                 final tasks = entry.value;
+
+                            //                 return ExpansionTile(
+                            //                   title: Text(
+                            //                     "Project: $projectId (${tasks.length})",
+                            //                   ),
+                            //                   children: tasks.map((task) {
+                            //                     return ListTile(
+                            //                       title: Text(task.title ?? ""),
+                            //                       subtitle: Text(
+                            //                         task.description ?? "",
+                            //                       ),
+                            //                       onTap: () {
+                            //                         _collaborationController
+                            //                             .addDependency(
+                            //                               _projectId!,
+                            //                               task.id ?? '',
+                            //                             );
+                            //                         print(_projectId);
+                            //                         print(task.id);
+                            //                       },
+                            //                     );
+                            //                   }).toList(),
+                            //                 );
+                            //               }).toList(),
+                            //             );
+                            //           }),
+                            //         );
+                            //       },
+                            //     );
+                            //   },
+                            // ),
+
+                            // const SizedBox(height: 8),
 
                             // Priority
                             _animatedField(

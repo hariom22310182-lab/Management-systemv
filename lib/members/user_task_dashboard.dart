@@ -98,7 +98,7 @@ class _UserTaskDashboardState extends State<UserTaskDashboard> {
                   padding: EdgeInsets.fromLTRB(20, topPad + 16, 20, 24),
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Color(0xFF7C3AED), Color(0xFF4338CA)],
+                      colors: [AppColors.primary, AppColors.alertTitle],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -336,146 +336,171 @@ class _UserTaskDashboardState extends State<UserTaskDashboard> {
                         );
 
                         return Container(
-                          margin: const EdgeInsets.only(bottom: 10),
+                          margin: const EdgeInsets.only(bottom: 12),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            // ✅ CLEAN SOFT BACKGROUND COLORS
+                            color: task.status == 'DONE'
+                                ? const Color(0xFFE8F5E9) // soft green
+                                : task.status == 'NOT_STARTED'
+                                ? const Color(0xFFFFF8E1) // soft yellow
+                                : task.priority == 'Critical'
+                                ? const Color(0xFFFFEBEE) // soft red (priority)
+                                : task.status == 'OVERDUE'
+                                ? const Color(0xFFFFEBEE) // same red family
+                                : task.status == 'IN_PROGRESS'
+                                ? const Color(0xFFE3F2FD) // soft blue
+                                : Colors.white,
+
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: const Color(0xFFE5E7EB)),
+                            border: Border.all(
+                              color: task.status == 'DONE'
+                                  ? const Color(0xFF81C784) // green
+                                  : task.status == 'NOT_STARTED'
+                                  ? const Color(0xFFFFD54F) // yellow
+                                  : task.priority == 'Critical'
+                                  ? const Color(0xFFE57373) // red (priority)
+                                  : task.status == 'OVERDUE'
+                                  ? const Color(0xFFEF5350) // stronger red
+                                  : task.status == 'IN_PROGRESS'
+                                  ? const Color(0xFF64B5F6) // blue
+                                  : Colors.grey.withOpacity(0.15),
+                              width: 1.0,
+                            ),
+
+                            // ❌ REMOVED BORDER (very important)
+
+                            // ✅ PROPER SHADOW (depth feel)
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.04),
-                                blurRadius: 8,
-                                offset: const Offset(0, 1),
+                                color: Colors.black.withOpacity(0.06),
+                                blurRadius: 12,
+                                offset: const Offset(0, 6),
                               ),
                             ],
                           ),
+
                           child: InkWell(
+                            borderRadius: BorderRadius.circular(16),
                             onTap: () {
                               Get.to(() => UserTaskDetailPage(task: task));
                             },
-                            child: Column(
-                              children: [
-                                Container(
-                                  height: 2,
-                                  decoration: BoxDecoration(
-                                    color: strip,
-                                    borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(16),
+
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                12,
+                                12,
+                                12,
+                                14,
+                              ),
+
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // 🔵 STATUS ICON
+                                  Container(
+                                    width: 30,
+                                    height: 30,
+                                    decoration: BoxDecoration(
+                                      color:
+                                          (isDone ? AppColors.completed : strip)
+                                              .withOpacity(0.10),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      isDone
+                                          ? Icons.check
+                                          : Icons.pending_outlined,
+                                      size: 16,
+                                      color: isDone
+                                          ? AppColors.completed
+                                          : strip,
                                     ),
                                   ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(
-                                    12,
-                                    10,
-                                    12,
-                                    12,
-                                  ),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        width: 28,
-                                        height: 28,
-                                        decoration: BoxDecoration(
-                                          color:
-                                              (isDone
-                                                      ? AppColors.completed
-                                                      : strip)
-                                                  .withValues(alpha: 0.12),
-                                          shape: BoxShape.circle,
+
+                                  const SizedBox(width: 12),
+
+                                  // 📄 CONTENT
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        // 🔹 TITLE
+                                        Text(
+                                          task.title,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700,
+                                            color: const Color(0xFF111827),
+                                            decoration: isDone
+                                                ? TextDecoration.lineThrough
+                                                : TextDecoration.none,
+                                            decorationColor: const Color(
+                                              0xFF9CA3AF,
+                                            ),
+                                            decorationThickness: 2,
+                                          ),
                                         ),
-                                        child: Icon(
-                                          isDone
-                                              ? Icons.check
-                                              : Icons.pending_outlined,
-                                          size: 16,
-                                          color: isDone
-                                              ? AppColors.completed
-                                              : strip,
+
+                                        const SizedBox(height: 5),
+
+                                        // 🔹 DESCRIPTION
+                                        Text(
+                                          task.description ?? "",
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            color: Color(0xFF64748B),
+                                            fontSize: 13,
+                                            height: 1.3,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+
+                                        const SizedBox(height: 12),
+
+                                        // 🔹 BADGES
+                                        Wrap(
+                                          spacing: 8,
+                                          runSpacing: 8,
                                           children: [
-                                            Text(
-                                              task.title,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w700,
-                                                color: const Color(0xFF1F2937),
-                                                decoration: isDone
-                                                    ? TextDecoration.lineThrough
-                                                    : TextDecoration.none,
-                                                decorationColor: const Color(
-                                                  0xFF9CA3AF,
-                                                ),
-                                                decorationThickness: 2,
-                                              ),
+                                            _Badge(
+                                              text: isDone
+                                                  ? 'Done'
+                                                  : _statusLabel(task.status),
+                                              bg:
+                                                  (isDone
+                                                          ? AppColors.completed
+                                                          : strip)
+                                                      .withOpacity(0.10),
+                                              fg: isDone
+                                                  ? AppColors.completed
+                                                  : strip,
                                             ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              task.description,
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                color: Color(0xFF64748B),
-                                                fontSize: 13,
-                                                height: 1.25,
+
+                                            _Badge(
+                                              text: dc.formatDeadline(
+                                                task.deadLine,
                                               ),
+                                              bg: const Color(0xFFFFF4E5),
+                                              fg: const Color(0xFFF59E0B),
+                                              icon:
+                                                  Icons.calendar_today_rounded,
                                             ),
-                                            const SizedBox(height: 10),
-                                            Wrap(
-                                              spacing: 8,
-                                              runSpacing: 8,
-                                              children: [
-                                                _Badge(
-                                                  text: isDone
-                                                      ? 'Done'
-                                                      : _statusLabel(
-                                                          task.status,
-                                                        ),
-                                                  bg:
-                                                      (isDone
-                                                              ? AppColors
-                                                                    .completed
-                                                              : strip)
-                                                          .withValues(
-                                                            alpha: 0.12,
-                                                          ),
-                                                  fg: isDone
-                                                      ? AppColors.completed
-                                                      : strip,
-                                                ),
-                                                _Badge(
-                                                  text: dc.formatDeadline(
-                                                    task.deadLine,
-                                                  ),
-                                                  bg: const Color(0xFFFFF4E5),
-                                                  fg: const Color(0xFFF59E0B),
-                                                  icon: Icons
-                                                      .calendar_today_rounded,
-                                                ),
-                                                _Badge(
-                                                  text: '#${task.priority}',
-                                                  bg: const Color(0xFFEEF2FF),
-                                                  fg: const Color(0xFF4F46E5),
-                                                ),
-                                              ],
+
+                                            _Badge(
+                                              text: '#${task.priority}',
+                                              bg: const Color(0xFFEEF2FF),
+                                              fg: const Color(0xFF4F46E5),
                                             ),
                                           ],
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         );
@@ -484,7 +509,7 @@ class _UserTaskDashboardState extends State<UserTaskDashboard> {
                   }),
                 ),
 
-                const SizedBox(height: 100),
+                const SizedBox(height: 150),
               ],
             ),
           ),

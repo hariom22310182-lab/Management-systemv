@@ -77,7 +77,7 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
 
   final dc = Get.find<UserDashboardController>();
   final taskController = Get.find<UserTaskController>();
-  
+
   @override
   Widget build(BuildContext context) {
     final topPad = MediaQuery.of(context).padding.top;
@@ -100,7 +100,7 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
                   padding: EdgeInsets.fromLTRB(20, topPad + 16, 20, 24),
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Color(0xFF7C3AED), Color(0xFF4338CA)],
+                      colors: [AppColors.primary, AppColors.alertTitle],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),

@@ -5,12 +5,17 @@ import 'package:managementt/service/task_service.dart';
 class CollaborationController extends GetxController {
   var collaborators = <Task>[].obs;
   var projects = <Task>[].obs;
+  var tasksOfCollaboration = <String, List<Task>>{}.obs;
+
+  var isLoading = false.obs;
 
   void addCollaborator(String taskId, String _projectId) async {
     try {
       await TaskService().addCollaborator(taskId, _projectId);
 
-      print('CollaborationController: Added collaborator $_projectId to task $taskId');
+      print(
+        'CollaborationController: Added collaborator $_projectId to task $taskId',
+      );
     } catch (e) {
       print('Error adding collaborator: $e');
     }
@@ -20,11 +25,11 @@ class CollaborationController extends GetxController {
   void onInit() {
     super.onInit();
     fetchAllProjects();
-   
   }
 
   Future<void> fetchAllProjects() async {
     try {
+      isLoading.value = true;
       final results = await TaskService().getAllProjects();
       projects.value = results;
       print('CollaborationController: Fetched ${projects.length} projects');
@@ -33,6 +38,8 @@ class CollaborationController extends GetxController {
       // ignore: avoid_print
       print('UserTaskController: Failed to fetch all projects — $e');
       projects.value = [];
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -40,12 +47,43 @@ class CollaborationController extends GetxController {
     try {
       final results = await TaskService().getCollaboratedProjects(projectId);
       collaborators.value = results;
-      print('CollaborationController: Fetched ${collaborators.length} collaborators for project $projectId');
+      print(
+        'CollaborationController: Fetched ${collaborators.length} collaborators for project $projectId',
+      );
       collaborators.refresh();
     } catch (e) {
       // ignore: avoid_print
       print('CollaborationController: Failed to fetch collaborators — $e');
       collaborators.value = [];
+    }
+  }
+
+  Future<void> getAllTasksByCollaboration(String projectId) async {
+    try {
+      final results = await TaskService().getAllTasksByCollaboration(projectId);
+
+      tasksOfCollaboration.value = results;
+
+      // Calculate total tasks (not just project count)
+      int totalTasks = results.values.fold(0, (sum, list) => sum + list.length);
+
+      print(
+        'CollaborationController: Fetched $totalTasks tasks across ${results.length} projects for collaboration $projectId',
+      );
+    } catch (e) {
+      print('CollaborationController: Failed to fetch tasks — $e');
+      tasksOfCollaboration.value = {};
+    }
+  }
+
+  void addDependency(String taskId, String dependencyId) async {
+    try {
+      await TaskService().addDependency(taskId, dependencyId);
+      print(
+        'CollaborationController: Added dependency $dependencyId to task $taskId',
+      );
+    } catch (e) {
+      print('Error adding dependency: $e');
     }
   }
 }

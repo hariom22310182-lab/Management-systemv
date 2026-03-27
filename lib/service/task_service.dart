@@ -26,6 +26,21 @@ class TaskService {
     }
   }
 
+  Future<void> addDependency(String taskId, String dependencyId) async {
+    // taskId = "69c6d95c15a8b550f2894b2c";
+    // dependencyId = "69c68c63fe54cc2683bb0593";
+    print("inside add $taskId");
+    print("inside add  dependencyId $dependencyId");
+    final response = await _api.post(
+      '/tasks/dependency/add/$taskId',
+      body: dependencyId,
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        response.body.isNotEmpty ? response.body : 'Failed to add dependency',
+      );
+    }
+  }
 
   Future<Task> getTaskById(String id) async {
     final response = await _api.get('/tasks/id/$id');
@@ -75,7 +90,8 @@ class TaskService {
       throw Exception('Failed to fetch tasks for owner');
     }
   }
-  Future <List<Task>> getCollaboratedProjects(String id) async {
+
+  Future<List<Task>> getCollaboratedProjects(String id) async {
     final response = await _api.get('/tasks/getCollaboratedProject/$id');
     if (response.statusCode == 200) {
       final List data = jsonDecode(response.body);
@@ -96,11 +112,9 @@ class TaskService {
       );
     }
   }
+
   Future<void> updateTaskType(String id) async {
-    final response = await _api.put(
-      '/tasks/updateType/$id',
-      body: true,
-    );
+    final response = await _api.put('/tasks/updateType/$id', body: true);
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(
         response.body.isNotEmpty ? response.body : 'Failed to update task',
@@ -156,6 +170,26 @@ class TaskService {
     } catch (e) {
       // Silently fail - overdue check is not critical
       print('TaskService: Failed to check overdue — $e');
+    }
+  }
+
+  Future<Map<String, List<Task>>> getAllTasksByCollaboration(String id) async {
+    try {
+      final response = await _api.get('/tasks/getAllTasksByCollaboration/$id');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+
+        return data.map((key, value) {
+          final List list = value;
+          return MapEntry(key, list.map((e) => Task.fromJson(e)).toList());
+        });
+      } else {
+        throw Exception('Failed to fetch collaborated tasks');
+      }
+    } catch (e) {
+      print('TaskService: Failed — $e');
+      return {};
     }
   }
 }

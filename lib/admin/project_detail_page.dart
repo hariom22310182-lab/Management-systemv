@@ -4,6 +4,7 @@ import 'package:managementt/admin/add_task.dart';
 import 'package:managementt/components/app_colors.dart';
 import 'package:managementt/components/date_time_helper.dart';
 import 'package:managementt/controller/auth_controller.dart';
+import 'package:managementt/controller/collaboration_controller.dart';
 import 'package:managementt/controller/member_controller.dart';
 import 'package:managementt/controller/task_controller.dart';
 import 'package:managementt/members/collaboration_page.dart';
@@ -28,6 +29,8 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   final MemberController _memberController = Get.find<MemberController>();
   final RxString _selectedFilter = 'ALL'.obs;
   final RxString _taskSearchQuery = ''.obs;
+  final CollaborationController collaborationController =
+      Get.find<CollaborationController>();
 
   void _openProjectEditor(Task project) {
     Get.to(() => AddTask(defaultType: 'PROJECT', taskToEdit: project));
@@ -407,6 +410,8 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     final timeRemainingColor = _remainingTimeColor(remainingDays);
     final projectProgress = (project.progress / 100).clamp(0.0, 1.0);
 
+    collaborationController.getAllTasksByCollaboration(project.id!);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: Obx(() {
@@ -428,7 +433,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                 padding: EdgeInsets.fromLTRB(16, topPad + 12, 16, 22),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFF6366F1), Color(0xFF3B5BEE)],
+                    colors: [AppColors.primary, AppColors.alertTitle],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -812,6 +817,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                             defaultType: 'TASK',
                             parentId: widget.project.id,
                           ),
+                          arguments: widget.project.id,
                         );
                       },
                       icon: const Icon(Icons.add, size: 18),
@@ -937,14 +943,15 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                         deadlineText: _deadlineText(t.deadLine),
                         ownerName: _memberNameById(t.ownerId),
                         onModify: _canManageProject
-                          ? () => _openTaskEditor(t)
-                          : null,
+                            ? () => _openTaskEditor(t)
+                            : null,
                         onUndone:
-                          _canManageProject &&
-                            AppColors.isCompletedStatus(t.status)
+                            _canManageProject &&
+                                AppColors.isCompletedStatus(t.status)
                             ? () => _undoCompletedTask(t)
                             : null,
                         onApprove: showApprove ? () => _approveTask(t) : null,
+                        onAddDependency: () => _openAddDependency(t),
                       );
                     }).toList(),
                   ),
@@ -954,6 +961,230 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
           ),
         );
       }),
+    );
+  }
+
+  Future<void> _openAddDependency(Task task) {
+    final _collaborationController = Get.find<CollaborationController>();
+
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          maxChildSize: 0.95,
+          minChildSize: 0.5,
+          builder: (_, controller) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: Column(
+                children: [
+                  // 🔹 Drag Handle
+                  const SizedBox(height: 10),
+                  Container(
+                    width: 40,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // 🔹 Header
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Add Dependency",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Get.back(),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // 🔹 Content
+                  Expanded(
+                    child: Obx(() {
+                      final data =
+                          _collaborationController.tasksOfCollaboration;
+
+                      if (data.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            "No tasks available 🚀",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        );
+                      }
+
+                      return ListView(
+                        controller: controller,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        children: data.entries.map((entry) {
+                          final projectId = entry.key;
+                          final tasks = entry.value;
+
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 14),
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(18),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.04),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // 🔹 Project Header
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(
+                                        Icons.folder,
+                                        color: Colors.blue,
+                                        size: 18,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        "Project $projectId",
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      "${tasks.length} tasks",
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 12),
+
+                                // 🔹 Tasks
+                                Column(
+                                  children: tasks.map((depTask) {
+                                    return InkWell(
+                                      borderRadius: BorderRadius.circular(12),
+                                      onTap: () async {
+                                        _collaborationController.addDependency(
+                                          task.id!,
+                                          depTask.id ?? '',
+                                        );
+
+                                        Get.back();
+
+                                        Get.snackbar(
+                                          "Success",
+                                          "Dependency added",
+                                          backgroundColor: Colors.black,
+                                          colorText: Colors.white,
+                                          snackPosition: SnackPosition.BOTTOM,
+                                          borderRadius: 12,
+                                          margin: const EdgeInsets.all(12),
+                                        );
+                                      },
+                                      child: Container(
+                                        margin: const EdgeInsets.only(
+                                          bottom: 8,
+                                        ),
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF1F5F9),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.task_alt,
+                                              size: 18,
+                                              color: Colors.green,
+                                            ),
+
+                                            const SizedBox(width: 10),
+
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    depTask.title ?? "",
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 2),
+                                                  Text(
+                                                    depTask.description ?? "",
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.grey[600],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+
+                                            const Icon(
+                                              Icons.add_circle_outline,
+                                              size: 18,
+                                              color: Colors.blue,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      );
+                    }),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -1053,6 +1284,7 @@ class _TaskCard extends StatelessWidget {
   final VoidCallback? onModify;
   final VoidCallback? onUndone;
   final VoidCallback? onApprove;
+  final VoidCallback? onAddDependency;
 
   const _TaskCard({
     required this.task,
@@ -1061,6 +1293,7 @@ class _TaskCard extends StatelessWidget {
     this.onModify,
     this.onUndone,
     this.onApprove,
+    this.onAddDependency,
   });
 
   @override
@@ -1150,8 +1383,14 @@ class _TaskCard extends StatelessWidget {
                                   onModify?.call();
                                   return;
                                 }
+
                                 if (action == _TaskQuickAction.undone) {
                                   onUndone?.call();
+                                  return;
+                                }
+
+                                if (action == _TaskQuickAction.addDependency) {
+                                  onAddDependency?.call(); // ✅ THIS WAS MISSING
                                 }
                               },
                               itemBuilder: (context) => [
@@ -1164,6 +1403,11 @@ class _TaskCard extends StatelessWidget {
                                   value: _TaskQuickAction.undone,
                                   enabled: onUndone != null,
                                   child: const Text('UNDONE'),
+                                ),
+                                PopupMenuItem<_TaskQuickAction>(
+                                  value: _TaskQuickAction.addDependency,
+                                  enabled: onAddDependency != null,
+                                  child: const Text('Add Dependency'),
                                 ),
                               ],
                               icon: const Icon(
@@ -1280,7 +1524,7 @@ class _TaskCard extends StatelessWidget {
   }
 }
 
-enum _TaskQuickAction { modify, undone }
+enum _TaskQuickAction { modify, undone, addDependency }
 
 class _Badge extends StatelessWidget {
   final String text;

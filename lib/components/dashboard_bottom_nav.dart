@@ -66,7 +66,9 @@ class DashboardBottomNav extends StatelessWidget {
               blurRadius: 56,
               offset: const Offset(0, 8),
             ),
+           
           ],
+            
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(32),

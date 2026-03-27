@@ -5,6 +5,7 @@ import 'package:managementt/components/app_colors.dart';
 import 'package:managementt/controller/admin_nav_controller.dart';
 import 'package:managementt/controller/auth_controller.dart';
 import 'package:managementt/controller/category_controller.dart';
+import 'package:managementt/controller/collaboration_controller.dart';
 import 'package:managementt/controller/dashboard_controller.dart';
 import 'package:managementt/controller/member_controller.dart';
 import 'package:managementt/controller/profile_controller.dart';
@@ -26,6 +27,7 @@ void main() {
   Get.put(ProfileController(), permanent: true);
   Get.put(AdminNavController(), permanent: true);
   Get.put(UserTaskController(), permanent: true);
+  Get.put(CollaborationController(), permanent: true);
 
   runApp(const MyApp());
 }
@@ -42,7 +44,7 @@ class MyApp extends StatelessWidget {
       transitionDuration: const Duration(milliseconds: 180),
       theme: ThemeData(
         useMaterial3: true,
-        scaffoldBackgroundColor: AppColors.background,
+        scaffoldBackgroundColor: AppColors.scaffoldBackground,
         brightness: Brightness.light,
         textTheme: const TextTheme(
           headlineLarge: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
