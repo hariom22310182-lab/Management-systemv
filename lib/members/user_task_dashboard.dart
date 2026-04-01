@@ -4,7 +4,7 @@ import 'package:managementt/components/app_colors.dart';
 import 'package:managementt/components/app_render_entrance.dart';
 import 'package:managementt/controller/profile_controller.dart';
 import 'package:managementt/controller/user_task_controller.dart';
-import 'package:managementt/model/filter_enums.dart';
+import 'package:managementt/controller/category_controller.dart';
 import 'package:managementt/controller/user_dashboard_controller.dart';
 import 'package:managementt/members/user_task_detail_page.dart';
 import 'package:managementt/service/task_service.dart';
@@ -34,9 +34,11 @@ class UserTaskDashboard extends StatefulWidget {
 class _UserTaskDashboardState extends State<UserTaskDashboard> {
   late TextEditingController searchController;
   final searchQuery = ''.obs;
-  final statusFilter = TaskStatusFilter.all.obs;
-  final priorityFilter = PriorityFilter.all.obs;
+  final selectedStatus = 'ALL'.obs;
+  final selectedPriority = 'ALL'.obs;
+  final selectedCategory = 'ALL'.obs;
   final UserTaskController taskController = Get.find<UserTaskController>();
+  final CategoryController categoryController = Get.find<CategoryController>();
 
   @override
   void initState() {
@@ -149,7 +151,7 @@ class _UserTaskDashboardState extends State<UserTaskDashboard> {
                               color: const Color(0xFF4ADE80),
                             ),
                             _StatChip(
-                              label: 'Completed',
+                              label: 'Done',
                               count: tasks
                                   .where((t) => t.status == 'DONE')
                                   .length,
@@ -196,62 +198,7 @@ class _UserTaskDashboardState extends State<UserTaskDashboard> {
                       ),
 
                       const SizedBox(height: 12),
-
-                      /// STATUS FILTERS
-                      Obx(() {
-                        final selected = statusFilter.value;
-                        return SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              _FilterChip(
-                                label: 'All',
-                                isSelected: selected == TaskStatusFilter.all,
-                                onTap: () =>
-                                    statusFilter.value = TaskStatusFilter.all,
-                              ),
-                              const SizedBox(width: 8),
-                              _FilterChip(
-                                label: 'Todo',
-                                isSelected: selected == TaskStatusFilter.todo,
-                                onTap: () =>
-                                    statusFilter.value = TaskStatusFilter.todo,
-                              ),
-                              const SizedBox(width: 8),
-                              _FilterChip(
-                                label: 'In Progress',
-                                isSelected:
-                                    selected == TaskStatusFilter.inProgress,
-                                onTap: () => statusFilter.value =
-                                    TaskStatusFilter.inProgress,
-                              ),
-                              const SizedBox(width: 8),
-                              _FilterChip(
-                                label: 'Under Review',
-                                isSelected:
-                                    selected == TaskStatusFilter.underReview,
-                                onTap: () => statusFilter.value =
-                                    TaskStatusFilter.underReview,
-                              ),
-                              const SizedBox(width: 8),
-                              _FilterChip(
-                                label: 'Done',
-                                isSelected: selected == TaskStatusFilter.done,
-                                onTap: () =>
-                                    statusFilter.value = TaskStatusFilter.done,
-                              ),
-                              const SizedBox(width: 8),
-                              _FilterChip(
-                                label: 'Overdue',
-                                isSelected:
-                                    selected == TaskStatusFilter.overdue,
-                                onTap: () => statusFilter.value =
-                                    TaskStatusFilter.overdue,
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
+                      _buildFilterRow(),
                     ],
                   ),
                 ),
@@ -272,23 +219,43 @@ class _UserTaskDashboardState extends State<UserTaskDashboard> {
                     var filtered = taskController.userTasks.toList();
 
                     // Apply status filter
-                    if (statusFilter.value != TaskStatusFilter.all) {
+                    if (selectedStatus.value != 'ALL') {
                       filtered = filtered.where((task) {
                         final status = (task.status ?? '').toUpperCase();
-                        switch (statusFilter.value) {
-                          case TaskStatusFilter.todo:
-                            return status == 'NOT_STARTED' || status == 'TODO';
-                          case TaskStatusFilter.inProgress:
+                        switch (selectedStatus.value) {
+                          case 'IN_PROGRESS':
                             return status == 'IN_PROGRESS';
-                          case TaskStatusFilter.underReview:
-                            return status == 'REVIEW';
-                          case TaskStatusFilter.done:
+                          case 'DONE':
                             return status == 'DONE' || status == 'COMPLETED';
-                          case TaskStatusFilter.overdue:
+                          case 'TODO':
+                            return status == 'NOT_STARTED' || status == 'TODO';
+                          case 'REVIEW':
+                            return status == 'REVIEW';
+                          case 'OVERDUE':
                             return status == 'OVERDUE';
                           default:
                             return true;
                         }
+                      }).toList();
+                    }
+
+                    // Apply priority filter
+                    if (selectedPriority.value != 'ALL') {
+                      filtered = filtered.where((task) {
+                        final priority = (task.priority).trim().toUpperCase();
+                        return _matchesPriority(
+                          priority,
+                          selectedPriority.value,
+                        );
+                      }).toList();
+                    }
+
+                    // Apply category filter
+                    if (selectedCategory.value != 'ALL') {
+                      filtered = filtered.where((task) {
+                        final cat = (task.category ?? '').trim().toLowerCase();
+                        return cat ==
+                            selectedCategory.value.trim().toLowerCase();
                       }).toList();
                     }
 
@@ -537,6 +504,240 @@ class _UserTaskDashboardState extends State<UserTaskDashboard> {
         return 'Task';
     }
   }
+
+  Widget _buildFilterRow() {
+    return Obx(
+      () => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _buildFilterDropdown(
+                  label: 'Status',
+                  value: selectedStatus.value,
+                  hintText: 'Select status',
+                  options: _statusOptions.keys.toList(),
+                  labelBuilder: (v) => _statusOptions[v] ?? v,
+                  onChanged: (val) {
+                    if (val == null) return;
+                    selectedStatus.value = val;
+                    if (val != 'ALL') {
+                      selectedPriority.value = 'ALL';
+                      selectedCategory.value = 'ALL';
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildFilterDropdown(
+                  label: 'Priority',
+                  value: selectedPriority.value,
+                  hintText: 'Select priority',
+                  options: _priorityOptions,
+                  labelBuilder: (v) => v,
+                  onChanged: (val) {
+                    if (val == null) return;
+                    selectedPriority.value = val;
+                    if (val != 'ALL') {
+                      selectedStatus.value = 'ALL';
+                      selectedCategory.value = 'ALL';
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildFilterDropdown(
+                  label: 'Category',
+                  value: selectedCategory.value,
+                  hintText: 'Select category',
+                  options: _categoryOptions,
+                  labelBuilder: (v) => v,
+                  onChanged: (val) {
+                    if (val == null) return;
+                    selectedCategory.value = val;
+                    if (val != 'ALL') {
+                      selectedStatus.value = 'ALL';
+                      selectedPriority.value = 'ALL';
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterDropdown({
+    required String label,
+    required String value,
+    required String hintText,
+    required List<String> options,
+    required String Function(String value) labelBuilder,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double cappedMenuWidth = (constraints.maxWidth - 16)
+            .clamp(0.0, constraints.maxWidth)
+            .toDouble();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            SizedBox(
+              height: 40,
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  scrollbarTheme: ScrollbarThemeData(
+                    thumbVisibility: WidgetStateProperty.all(false),
+                    trackVisibility: WidgetStateProperty.all(false),
+                    thickness: WidgetStateProperty.all(0),
+                    radius: const Radius.circular(0),
+                  ),
+                ),
+                child: DropdownButtonFormField<String>(
+                  value: value,
+                  isExpanded: true,
+                  icon: const Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                  dropdownColor: AppColors.alertTitle,
+                  borderRadius: BorderRadius.circular(12),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  menuMaxHeight: 240,
+                  decoration: InputDecoration(
+                    hintText: hintText,
+                    hintStyle: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      fontSize: 12,
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: 0.14),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        width: 1.15,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Colors.white,
+                        width: 1.35,
+                      ),
+                    ),
+                  ),
+                  items: options
+                      .map(
+                        (option) => DropdownMenuItem<String>(
+                          value: option,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: cappedMenuWidth,
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  margin: const EdgeInsets.only(right: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.9),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    labelBuilder(option),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: onChanged,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  static const Map<String, String> _statusOptions = {
+    'ALL': 'ALL',
+    'IN_PROGRESS': 'IN PROGRESS',
+    'DONE': 'DONE',
+    'TODO': 'NOT STARTED',
+    'REVIEW': 'UNDER REVIEW',
+    'OVERDUE': 'OVERDUE',
+  };
+
+  static const List<String> _priorityOptions = [
+    'ALL',
+    'Critical',
+    'High',
+    'Moderate',
+    'Low',
+  ];
+
+  List<String> get _categoryOptions {
+    final opts = categoryController.dropdownOptions;
+    if (opts.contains('ALL')) return opts;
+    return ['ALL', ...opts];
+  }
+
+  bool _matchesPriority(String taskPriority, String selected) {
+    final p = taskPriority.trim().toUpperCase();
+    switch (selected.trim().toUpperCase()) {
+      case 'CRITICAL':
+        return p == 'CRITICAL';
+      case 'HIGH':
+        return p == 'HIGH';
+      case 'MODERATE':
+      case 'MEDIUM':
+        return p == 'MODERATE' || p == 'MEDIUM';
+      case 'LOW':
+        return p == 'LOW';
+      case 'ALL':
+      default:
+        return true;
+    }
+  }
 }
 
 class _StatChip extends StatelessWidget {
@@ -576,47 +777,6 @@ class _StatChip extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _FilterChip({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.white
-              : Colors.white.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected
-                ? Colors.white
-                : Colors.white.withValues(alpha: 0.3),
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? AppColors.primary : Colors.white,
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
       ),
     );
   }

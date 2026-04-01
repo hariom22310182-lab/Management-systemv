@@ -432,7 +432,12 @@ class _UserTaskDetailPageState extends State<UserTaskDetailPage> {
                             icon: const Icon(Icons.rule_rounded, size: 18),
                             label: const Text('Submit Review'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0F766E),
+                              backgroundColor: const Color.fromARGB(
+                                255,
+                                33,
+                                189,
+                                33,
+                              ),
                               foregroundColor: Colors.white,
                               elevation: 0,
                               padding: const EdgeInsets.symmetric(vertical: 12),
