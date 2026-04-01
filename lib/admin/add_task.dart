@@ -1083,50 +1083,117 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
   }
 
   Widget _buildCategoryDropdown() {
-    return DropdownButtonFormField<String>(
-      value: selectedCategory.value.isEmpty ? null : selectedCategory.value,
-      isExpanded: true,
-      hint: const Text(
-        'Select category',
-        style: TextStyle(
-          color: AppColors.textSecondary,
+    final options = [_noneCategoryValue, ..._categoryController.categories];
+
+    return Theme(
+      data: Theme.of(context).copyWith(
+        dropdownMenuTheme: DropdownMenuThemeData(
+          inputDecorationTheme: const InputDecorationTheme(filled: true),
+        ),
+      ),
+      child: DropdownButtonFormField<String>(
+        value: selectedCategory.value.isEmpty ? null : selectedCategory.value,
+        isExpanded: true,
+        menuMaxHeight: 260,
+        borderRadius: BorderRadius.circular(14),
+        dropdownColor: Colors.white,
+        icon: const Icon(
+          Icons.keyboard_arrow_down_rounded,
+          color: AppColors.primary,
+          size: 20,
+        ),
+        style: const TextStyle(
+          color: Color(0xFF111827),
           fontSize: 14,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
         ),
-      ),
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: const Color(0xFFF8F9FC),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
+        hint: Row(
+          children: const [
+            Icon(Icons.label_rounded, size: 16, color: AppColors.textSecondary),
+            SizedBox(width: 8),
+            Text(
+              'Select category',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-        ),
-      ),
-      icon: const Icon(Icons.keyboard_arrow_down_rounded),
-      items: [
-        const DropdownMenuItem<String>(
-          value: _noneCategoryValue,
-          child: Text('None', style: TextStyle(fontSize: 14)),
-        ),
-        ..._categoryController.categories.map(
-          (category) => DropdownMenuItem<String>(
-            value: category,
-            child: Text(category, style: const TextStyle(fontSize: 14)),
+        decoration: InputDecoration(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 10,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(
+              color: AppColors.primary.withValues(alpha: 0.25),
+              width: 1.1,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(
+              color: AppColors.primary.withValues(alpha: 0.18),
+              width: 1.1,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(
+              color: AppColors.alertTitle,
+              width: 1.5,
+            ),
           ),
         ),
-      ],
-      onChanged: (value) {
-        selectedCategory.value = value ?? '';
-      },
+        items: options
+            .map(
+              (category) => DropdownMenuItem<String>(
+                value: category,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      margin: const EdgeInsets.only(right: 10),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: const [
+                            AppColors.primary,
+                            AppColors.alertTitle,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        category == _noneCategoryValue ? 'None' : category,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: category == selectedCategory.value
+                              ? FontWeight.w700
+                              : FontWeight.w600,
+                          color: category == selectedCategory.value
+                              ? AppColors.alertTitle
+                              : const Color(0xFF111827),
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+            .toList(),
+        onChanged: (value) {
+          selectedCategory.value = value ?? '';
+        },
+      ),
     );
   }
 
