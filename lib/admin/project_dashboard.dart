@@ -503,6 +503,9 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                                   taskController.searchQuery.value = val,
                               decoration: InputDecoration(
                                 hintText: "Search...",
+                                hintStyle: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.85),
+                                ),
                                 filled: true,
                                 fillColor: Colors.white.withValues(alpha: 0.12),
                                 prefixIcon: const Icon(

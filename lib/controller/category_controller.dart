@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:managementt/model/category.dart';
 import 'package:managementt/service/category_service.dart';
+import 'package:managementt/controller/auth_controller.dart';
 
 class CategoryController extends GetxController {
   final CategoryService _categoryService = CategoryService();
@@ -13,7 +14,13 @@ class CategoryController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // Load once, and reload on login so categories appear after auth.
     loadCategories();
+    ever(AuthController.to.isLoggedIn, (loggedIn) {
+      if (loggedIn == true) {
+        loadCategories();
+      }
+    });
   }
 
   List<String> get dropdownOptions => ['ALL', ...categories];
