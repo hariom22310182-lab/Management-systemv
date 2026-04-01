@@ -256,9 +256,9 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
             Text(
               label,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.75),
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: 4),
@@ -281,22 +281,22 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                     color: Colors.white,
                     size: 18,
                   ),
-                  dropdownColor: const Color(0xFF4F46E5),
+                  dropdownColor: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
+                    color: Color(0xFF111827),
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
                   menuMaxHeight: 240,
                   decoration: InputDecoration(
                     hintText: hintText,
                     hintStyle: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 11,
+                      color: Colors.white.withValues(alpha: 0.85),
+                      fontSize: 12,
                     ),
                     filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.12),
+                    fillColor: Colors.white.withValues(alpha: 0.16),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 6,
@@ -308,16 +308,13 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.18),
-                        width: 1,
+                        color: Colors.white.withValues(alpha: 0.35),
+                        width: 1.1,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.5),
-                        width: 1.2,
-                      ),
+                      borderSide: BorderSide(color: Colors.white, width: 1.3),
                     ),
                   ),
                   items: options
@@ -328,10 +325,27 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                             constraints: BoxConstraints(
                               maxWidth: cappedMenuWidth,
                             ),
-                            child: Text(
-                              labelBuilder(option),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  margin: const EdgeInsets.only(right: 8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.9,
+                                    ),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    labelBuilder(option),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
