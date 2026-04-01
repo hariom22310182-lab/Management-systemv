@@ -1410,44 +1410,92 @@ class _TaskCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 6),
                           if (onModify != null || onUndone != null)
-                            PopupMenuButton<_TaskQuickAction>(
-                              tooltip: 'Task actions',
-                              onSelected: (action) {
-                                if (action == _TaskQuickAction.modify) {
-                                  onModify?.call();
-                                  return;
-                                }
+                            Theme(
+                              data: Theme.of(context).copyWith(
+                                popupMenuTheme: PopupMenuThemeData(
+                                  color: Colors.white,
+                                  surfaceTintColor: Colors.white,
+                                  elevation: 10,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  textStyle: const TextStyle(
+                                    color: Color(0xFF1F2937),
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              child: PopupMenuButton<_TaskQuickAction>(
+                                tooltip: 'Task actions',
+                                offset: const Offset(0, 10),
+                                onSelected: (action) {
+                                  if (action == _TaskQuickAction.modify) {
+                                    onModify?.call();
+                                    return;
+                                  }
 
-                                if (action == _TaskQuickAction.undone) {
-                                  onUndone?.call();
-                                  return;
-                                }
+                                  if (action == _TaskQuickAction.undone) {
+                                    onUndone?.call();
+                                    return;
+                                  }
 
-                                if (action == _TaskQuickAction.addDependency) {
-                                  onAddDependency?.call(); // ✅ THIS WAS MISSING
-                                }
-                              },
-                              itemBuilder: (context) => [
-                                PopupMenuItem<_TaskQuickAction>(
-                                  value: _TaskQuickAction.modify,
-                                  enabled: onModify != null,
-                                  child: const Text('MODIFY'),
+                                  if (action ==
+                                      _TaskQuickAction.addDependency) {
+                                    onAddDependency?.call();
+                                  }
+                                },
+                                itemBuilder: (context) => [
+                                  PopupMenuItem<_TaskQuickAction>(
+                                    value: _TaskQuickAction.modify,
+                                    enabled: onModify != null,
+                                    child: Row(
+                                      children: const [
+                                        Icon(
+                                          Icons.edit_rounded,
+                                          size: 16,
+                                          color: AppColors.alertTitle,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text('Modify'),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem<_TaskQuickAction>(
+                                    value: _TaskQuickAction.undone,
+                                    enabled: onUndone != null,
+                                    child: Row(
+                                      children: const [
+                                        Icon(
+                                          Icons.refresh_rounded,
+                                          size: 16,
+                                          color: Color(0xFF0EA5E9),
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text('Mark Undone'),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem<_TaskQuickAction>(
+                                    value: _TaskQuickAction.addDependency,
+                                    enabled: onAddDependency != null,
+                                    child: Row(
+                                      children: const [
+                                        Icon(
+                                          Icons.merge_type_rounded,
+                                          size: 16,
+                                          color: AppColors.primary,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text('Add Dependency'),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                                icon: const Icon(
+                                  Icons.edit_outlined,
+                                  size: 18,
+                                  color: AppColors.alertTitle,
                                 ),
-                                PopupMenuItem<_TaskQuickAction>(
-                                  value: _TaskQuickAction.undone,
-                                  enabled: onUndone != null,
-                                  child: const Text('UNDONE'),
-                                ),
-                                PopupMenuItem<_TaskQuickAction>(
-                                  value: _TaskQuickAction.addDependency,
-                                  enabled: onAddDependency != null,
-                                  child: const Text('Add Dependency'),
-                                ),
-                              ],
-                              icon: const Icon(
-                                Icons.edit_outlined,
-                                size: 18,
-                                color: Color(0xFF475569),
                               ),
                             ),
                         ],
