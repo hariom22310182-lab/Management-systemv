@@ -92,6 +92,9 @@ class ProjectCard extends StatelessWidget {
                       if (subtitle != null)
                         Text(
                           subtitle!,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
                           style: TextStyle(
                             fontSize: 10,
                             color: Colors.blueGrey.withValues(alpha: 0.9),

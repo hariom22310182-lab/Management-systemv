@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managementt/admin/add_task.dart';
 import 'package:managementt/components/app_colors.dart';
+import 'package:managementt/components/app_confirm_dialog.dart';
 import 'package:managementt/components/date_time_helper.dart';
 import 'package:managementt/components/manage_dependency.dart';
 import 'package:managementt/components/message_page.dart';
@@ -63,6 +64,48 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
       await _taskController.getAllTask();
       setState(() {});
     }
+  }
+
+  Future<void> _deleteTask(Task task) async {
+    final taskId = task.id;
+    if (taskId == null || taskId.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Task id is missing. Please refresh and try again.',
+        backgroundColor: AppColors.error,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    if (!_canManageProject) {
+      Get.snackbar(
+        'Action blocked',
+        'Only the project owner or an admin can delete tasks.',
+        backgroundColor: AppColors.error,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    final confirmed = await AppConfirmDialog.show(
+      title: 'Delete task?',
+      message:
+          'Remove "${task.title}" from this project? This cannot be undone.',
+      confirmText: 'Delete',
+      tone: AppDialogTone.danger,
+      icon: Icons.delete_forever_rounded,
+    );
+
+    if (!confirmed) return;
+
+    await _taskController.removeTask(taskId);
+    Get.snackbar(
+      'Task deleted',
+      '"${task.title}" removed from the project.',
+      backgroundColor: AppColors.success,
+      colorText: Colors.white,
+    );
   }
 
   Future<void> _undoCompletedTask(Task task) async {
@@ -985,9 +1028,15 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                                 AppColors.isCompletedStatus(t.status)
                             ? () => _undoCompletedTask(t)
                             : null,
+                        onDelete: _canManageProject
+                            ? () => _deleteTask(t)
+                            : null,
                         onApprove: showApprove ? () => _approveTask(t) : null,
                         onAddDependency: () => Get.to(
-                          () => ManageDependency(taskId: t.id ?? '', projectId: project.id ?? ''),
+                          () => ManageDependency(
+                            taskId: t.id ?? '',
+                            projectId: project.id ?? '',
+                          ),
                         ),
                       );
                     }).toList(),
@@ -1096,6 +1145,7 @@ class _TaskCard extends StatelessWidget {
   final String ownerName;
   final VoidCallback? onModify;
   final VoidCallback? onUndone;
+  final VoidCallback? onDelete;
   final VoidCallback? onApprove;
   final VoidCallback? onAddDependency;
 
@@ -1105,6 +1155,7 @@ class _TaskCard extends StatelessWidget {
     required this.ownerName,
     this.onModify,
     this.onUndone,
+    this.onDelete,
     this.onApprove,
     this.onAddDependency,
   });
@@ -1188,7 +1239,9 @@ class _TaskCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          if (onModify != null || onUndone != null)
+                          if (onModify != null ||
+                              onUndone != null ||
+                              onDelete != null)
                             Theme(
                               data: Theme.of(context).copyWith(
                                 popupMenuTheme: PopupMenuThemeData(
@@ -1221,6 +1274,11 @@ class _TaskCard extends StatelessWidget {
                                   if (action ==
                                       _TaskQuickAction.addDependency) {
                                     onAddDependency?.call();
+                                    return;
+                                  }
+
+                                  if (action == _TaskQuickAction.delete) {
+                                    onDelete?.call();
                                   }
                                 },
                                 itemBuilder: (context) => [
@@ -1266,6 +1324,21 @@ class _TaskCard extends StatelessWidget {
                                         ),
                                         SizedBox(width: 8),
                                         Text('Add Dependency'),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem<_TaskQuickAction>(
+                                    value: _TaskQuickAction.delete,
+                                    enabled: onDelete != null,
+                                    child: Row(
+                                      children: const [
+                                        Icon(
+                                          Icons.delete_forever,
+                                          size: 16,
+                                          color: AppColors.error,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text('Delete'),
                                       ],
                                     ),
                                   ),
@@ -1385,7 +1458,7 @@ class _TaskCard extends StatelessWidget {
   }
 }
 
-enum _TaskQuickAction { modify, undone, addDependency }
+enum _TaskQuickAction { modify, undone, addDependency, delete }
 
 class _Badge extends StatelessWidget {
   final String text;
