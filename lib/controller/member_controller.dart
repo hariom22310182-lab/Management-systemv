@@ -76,7 +76,8 @@ class MemberController extends GetxController {
       Get.back();
       Get.snackbar('Success', 'Employee added successfully');
     } catch (e) {
-      Get.snackbar('Error', 'Failed to add member: $e');
+      final message = e.toString().replaceFirst('Exception: ', '');
+      Get.snackbar('Error', message);
     } finally {
       isLoading.value = false;
     }
