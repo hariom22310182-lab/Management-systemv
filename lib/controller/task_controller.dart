@@ -92,8 +92,8 @@ class TaskController extends GetxController {
   Future<void> getAllProjects() async {
     isLoading.value = true;
     try {
-      projects.value = await _taskService.getTasksByType('PROJECT');
-      getProjects();
+      final freshProjects = await _taskService.getAllProjects();
+      projects.value = freshProjects;
     } catch (e) {
       print("Error fetching tasks: $e");
     } finally {
@@ -104,8 +104,16 @@ class TaskController extends GetxController {
   Future<void> getAllTask() async {
     isLoading.value = true;
     try {
-      tasks.value = await _taskService.getAllTask();
-      getProjects();
+      final results = await Future.wait([
+        _taskService.getAllProjects(),
+        _taskService.getTasksByType('TASK'),
+      ]);
+
+      final freshProjects = results[0];
+      final freshTasks = results[1];
+
+      projects.value = freshProjects;
+      tasks.value = [...freshProjects, ...freshTasks];
     } catch (e) {
       print("Error fetching tasks: $e");
     } finally {
@@ -270,7 +278,10 @@ class TaskController extends GetxController {
         _refreshRelated();
         return true;
       } catch (fallbackError) {
-        AppSnackbar.show('Error', 'Failed to disapprove review: $fallbackError');
+        AppSnackbar.show(
+          'Error',
+          'Failed to disapprove review: $fallbackError',
+        );
         return false;
       }
     } finally {

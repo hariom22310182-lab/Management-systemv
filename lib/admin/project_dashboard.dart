@@ -395,6 +395,10 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
           onRefresh: () async {
             await TaskService().checkOverdue();
             await taskController.getAllTask();
+            await dc.loadDashboard();
+            if (mounted) {
+              setState(() {});
+            }
           },
           child: CustomScrollView(
             slivers: [
@@ -626,6 +630,10 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                             );
                             if (changed == true) {
                               await taskController.getAllTask();
+                              await dc.loadDashboard();
+                              if (mounted) {
+                                setState(() {});
+                              }
                             }
                           },
                         ),
