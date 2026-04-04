@@ -60,6 +60,10 @@ class UserDashboardController extends GetxController {
         );
         currentUserId = member?.id;
       }
+      if ((currentUserId == null || currentUserId.trim().isEmpty) &&
+          AuthController.to.currentUserId.value.trim().isNotEmpty) {
+        currentUserId = AuthController.to.currentUserId.value.trim();
+      }
 
       try {
         final allProjects = await _taskService.getAllProjects();
@@ -80,7 +84,9 @@ class UserDashboardController extends GetxController {
       }
 
       try {
-        loadedActivities = await _activityService.getActivities();
+        loadedActivities = currentUserId != null
+            ? await _activityService.getLeaderActivities(currentUserId)
+            : const <Activity>[];
       } catch (e) {
         print('UserDashboardController: Failed to load activities — $e');
       }
@@ -283,6 +289,28 @@ class UserDashboardController extends GetxController {
 
   Color projectAccent(Task item) {
     return AppColors.stripColor(priority: item.priority, status: item.status);
+  }
+
+  String formatRelativeTime(DateTime? time) {
+    if (time == null) return '';
+    final diff = DateTime.now().difference(time);
+    if (diff.inMinutes < 1) return 'just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inDays < 30) return '${diff.inDays}d ago';
+    if (diff.inDays < 365) return '${(diff.inDays / 30).floor()} months ago';
+    return '${(diff.inDays / 365).floor()} years ago';
+  }
+
+  List<ActivityItem> get activityItems {
+    return activities.take(5).map((a) {
+      return ActivityItem(
+        initials: getInitials(a.userName),
+        message: '${a.userName} ${a.verb} "${a.projectName}"',
+        project: a.projectName,
+        when: formatRelativeTime(a.time),
+      );
+    }).toList();
   }
 
   // ── Analytics computed properties ──

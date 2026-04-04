@@ -37,6 +37,7 @@ class UserDashboard extends StatelessWidget {
           final statusData = dc.statusData;
           final criticalAlerts = dc.criticalAlerts;
           final upcomingDeadlines = dc.deadlineItems;
+          final recentActivity = dc.activityItems;
           final loginId = AuthController.to.username.value.trim();
           final avatarLetter = loginId.isNotEmpty
               ? loginId[0].toUpperCase()
@@ -466,6 +467,38 @@ class UserDashboard extends StatelessWidget {
                                   : upcomingDeadlines
                                         .map((item) => DeadlineTile(item: item))
                                         .toList(),
+                            ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  const SectionHeader(title: 'Activity Log'),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Card(
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                          color: AppColors.divider.withValues(alpha: 0.9),
+                        ),
+                      ),
+                      child: recentActivity.isEmpty
+                          ? const Padding(
+                              padding: EdgeInsets.all(14),
+                              child: Text(
+                                'No team activity yet',
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            )
+                          : Column(
+                              children: recentActivity
+                                  .map((item) => ActivityTile(item: item))
+                                  .toList(),
                             ),
                     ),
                   ),

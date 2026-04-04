@@ -62,7 +62,7 @@ class DashboardController extends GetxController {
       }
 
       try {
-        loadedActivities = await _activityService.getActivities();
+        loadedActivities = await _activityService.getAdminActivities();
       } catch (e) {
         print('DashboardController: Failed to load activities — $e');
       }
@@ -238,7 +238,6 @@ class DashboardController extends GetxController {
   // ── Dashboard section data ──
 
   List<AlertItem> get criticalAlerts {
-    
     final today = DateTime(
       DateTime.now().year,
       DateTime.now().month,
