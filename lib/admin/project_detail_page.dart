@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:managementt/components/app_snackbar.dart';
 import 'package:managementt/admin/add_task.dart';
 import 'package:managementt/components/app_colors.dart';
 import 'package:managementt/components/app_confirm_dialog.dart';
@@ -76,7 +77,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   Future<void> _deleteTask(Task task) async {
     final taskId = task.id;
     if (taskId == null || taskId.isEmpty) {
-      Get.snackbar(
+      AppSnackbar.show(
         'Error',
         'Task id is missing. Please refresh and try again.',
         backgroundColor: AppColors.error,
@@ -86,7 +87,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     }
 
     if (!_canManageProject) {
-      Get.snackbar(
+      AppSnackbar.show(
         'Action blocked',
         'Only the project owner or an admin can delete tasks.',
         backgroundColor: AppColors.error,
@@ -108,7 +109,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
 
     await _taskController.removeTask(taskId);
     _markChanged();
-    Get.snackbar(
+    AppSnackbar.show(
       'Task deleted',
       '"${task.title}" removed from the project.',
       backgroundColor: AppColors.success,
@@ -119,7 +120,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   Future<void> _undoCompletedTask(Task task) async {
     final taskId = task.id;
     if (taskId == null || taskId.isEmpty) {
-      Get.snackbar(
+      AppSnackbar.show(
         'Error',
         'Task id is missing. Please refresh and try again.',
         backgroundColor: AppColors.error,
@@ -129,7 +130,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     }
 
     if (!_canApproveTasks) {
-      Get.snackbar(
+      AppSnackbar.show(
         'Action blocked',
         'Only the project owner or an admin can undo this task.',
         backgroundColor: AppColors.error,
@@ -139,7 +140,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     }
 
     if (!AppColors.isCompletedStatus(task.status)) {
-      Get.snackbar(
+      AppSnackbar.show(
         'Not allowed',
         'Only tasks marked done can be undone.',
         backgroundColor: AppColors.warning,
@@ -171,7 +172,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     final ok = await _taskController.updateTask(taskId, updated);
     if (ok) {
       _markChanged();
-      Get.snackbar(
+      AppSnackbar.show(
         'Task reopened',
         'Task marked as TODO and re-allocated to ${_memberNameById(task.ownerId)}.',
         backgroundColor: AppColors.success,
@@ -183,7 +184,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   Future<void> _approveTask(Task task) async {
     final taskId = task.id;
     if (taskId == null || taskId.isEmpty) {
-      Get.snackbar(
+      AppSnackbar.show(
         'Error',
         'Task id is missing. Please refresh and try again.',
         backgroundColor: AppColors.error,
@@ -193,7 +194,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     }
 
     if (!_canApproveTasks) {
-      Get.snackbar(
+      AppSnackbar.show(
         'Action blocked',
         'Only the project owner or an admin can approve this task.',
         backgroundColor: AppColors.error,
@@ -206,7 +207,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     final actorId = _resolveActorIdForApproval();
 
     if (actorId.isEmpty) {
-      Get.snackbar(
+      AppSnackbar.show(
         'Action blocked',
         'We could not resolve your identity for approval. Please relaunch or contact an admin.',
         backgroundColor: AppColors.error,
@@ -223,7 +224,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
 
     if (ok) {
       _markChanged();
-      Get.snackbar(
+      AppSnackbar.show(
         'Approved',
         'Task marked as done after review.',
         backgroundColor: AppColors.success,
@@ -235,7 +236,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   Future<void> _disapproveTask(Task task) async {
     final taskId = task.id;
     if (taskId == null || taskId.isEmpty) {
-      Get.snackbar(
+      AppSnackbar.show(
         'Error',
         'Task id is missing. Please refresh and try again.',
         backgroundColor: AppColors.error,
@@ -245,7 +246,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     }
 
     if (!_canApproveTasks) {
-      Get.snackbar(
+      AppSnackbar.show(
         'Action blocked',
         'Only the project owner or an admin can disapprove this task.',
         backgroundColor: AppColors.error,
@@ -258,7 +259,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     final actorId = _resolveActorIdForApproval();
 
     if (actorId.isEmpty) {
-      Get.snackbar(
+      AppSnackbar.show(
         'Action blocked',
         'We could not resolve your identity for disapproval. Please relaunch or contact an admin.',
         backgroundColor: AppColors.error,
@@ -275,7 +276,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
 
     if (ok) {
       _markChanged();
-      Get.snackbar(
+      AppSnackbar.show(
         'Disapproved',
         'Task moved back to TODO for rework.',
         backgroundColor: AppColors.success,
