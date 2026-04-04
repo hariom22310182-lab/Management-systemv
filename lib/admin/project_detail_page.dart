@@ -487,6 +487,12 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
 
   bool get _canApproveTasks => _canManageProject;
 
+  bool _isProjectCompleted(Task project) {
+    final statusDone = AppColors.isCompletedStatus(project.status);
+    final progressDone = project.progress >= 100;
+    return statusDone || progressDone;
+  }
+
   String _resolveActorIdForApproval() {
     if (_isAdminSession) {
       final adminId = AuthController.to.currentUserId.value.trim();
@@ -560,6 +566,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
           final remainingDays = DateTimeHelper.remainingDays(project.deadLine);
           final timeRemainingColor = _remainingTimeColor(remainingDays);
           final projectProgress = (project.progress / 100).clamp(0.0, 1.0);
+          final isProjectCompleted = _isProjectCompleted(project);
 
           final tasks = _projectTasks;
           final members = _projectMembers(tasks);
@@ -754,6 +761,43 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                               ),
                             ),
                             const SizedBox(height: 6),
+
+                            if (isProjectCompleted)
+                              Container(
+                                width: double.infinity,
+                                margin: const EdgeInsets.only(top: 10),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.35),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: const [
+                                    Icon(
+                                      Icons.emoji_events_rounded,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Project completed. New tasks are locked for this project.',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
 
                             const SizedBox(height: 14),
 
@@ -972,23 +1016,29 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                       ),
                       const Spacer(),
                       ElevatedButton.icon(
-                        onPressed: () async {
-                          final result = await Get.to(
-                            () => AddTask(
-                              defaultType: 'TASK',
-                              parentId: _project.id,
-                            ),
-                            arguments: _project.id,
-                          );
-                          if (result == true) {
-                            _markChanged();
-                            await _taskController.getAllTask();
-                          }
-                        },
+                        onPressed: isProjectCompleted
+                            ? null
+                            : () async {
+                                final result = await Get.to(
+                                  () => AddTask(
+                                    defaultType: 'TASK',
+                                    parentId: _project.id,
+                                  ),
+                                  arguments: _project.id,
+                                );
+                                if (result == true) {
+                                  _markChanged();
+                                  await _taskController.getAllTask();
+                                }
+                              },
                         icon: const Icon(Icons.add, size: 18),
-                        label: const Text('Add Task'),
+                        label: Text(
+                          isProjectCompleted ? 'Project Completed' : 'Add Task',
+                        ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF3B5BEE),
+                          backgroundColor: isProjectCompleted
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF3B5BEE),
                           foregroundColor: Colors.white,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(

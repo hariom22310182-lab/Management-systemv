@@ -86,7 +86,9 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
           case 'IN_PROGRESS':
             return status == 'IN_PROGRESS';
           case 'COMPLETED':
-            return status == 'DONE' || status == 'COMPLETED';
+            return status == 'DONE' ||
+                status == 'COMPLETED' ||
+                t.progress >= 100;
           case 'NOT_STARTED':
             return status == 'NOT_STARTED' || status == 'TODO';
           case 'OVERDUE':
@@ -157,8 +159,15 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
     }
   }
 
-  String _statusLabel(String? status) {
-    final s = (status ?? '').trim().toUpperCase();
+  bool _isProjectCompleted(Task task) {
+    return AppColors.isCompletedStatus(task.status) || task.progress >= 100;
+  }
+
+  String _statusLabel(Task task) {
+    final s = (task.status ?? '').trim().toUpperCase();
+    if (_isProjectCompleted(task)) {
+      return 'Done';
+    }
     switch (s) {
       case 'IN_PROGRESS':
         return 'In Progress';
@@ -486,7 +495,7 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                                 _StatChip(
                                   label: 'Done',
                                   count: tasks
-                                      .where((t) => t.status == 'DONE')
+                                      .where(_isProjectCompleted)
                                       .length,
                                   color: Colors.purple,
                                 ),
@@ -557,6 +566,7 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                     itemBuilder: (context, index) {
                       final task = tasks[index];
                       final total = task.completedTask + task.remainingTask;
+                      final displayState = _statusLabel(task);
 
                       return Dismissible(
                         key: ValueKey(task.id),
@@ -587,7 +597,7 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                               ? '${task.completedTask}/$total'
                               : null,
                           priority: _priorityLabel(task.priority),
-                          state: _statusLabel(task.status),
+                          state: displayState,
                           progress: task.progress / 100,
                           timeProgress: DateTimeHelper.remainingTimeRatio(
                             task.startDate,

@@ -231,6 +231,19 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
   int get _remainingContribution =>
       math.max(0, 100 - (_assignedContribution - _editingTaskContribution));
 
+  bool get _isParentProjectCompleted {
+    if (!_isProjectTask) return false;
+    final parentId = widget.parentId;
+    if (parentId == null || parentId.isEmpty) return false;
+
+    final parent = _taskController.tasks.firstWhereOrNull(
+      (t) => t.id == parentId,
+    );
+    if (parent == null) return false;
+
+    return AppColors.isCompletedStatus(parent.status) || parent.progress >= 100;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1327,6 +1340,19 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
   }
 
   void _handleSubmit() async {
+    if (_isParentProjectCompleted && !_isEditMode) {
+      AppSnackbar.show(
+        'Action blocked',
+        'This project is completed. You cannot add new tasks to it.',
+        backgroundColor: Colors.black,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(12),
+        borderRadius: 10,
+      );
+      return;
+    }
+
     final contributionText = contributionController.text.trim();
     int contributionValue = 0;
 
