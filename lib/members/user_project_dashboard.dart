@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managementt/admin/project_detail_page.dart';
 import 'package:managementt/components/app_colors.dart';
+import 'package:managementt/components/app_confirm_dialog.dart';
 import 'package:managementt/components/date_time_helper.dart';
 import 'package:managementt/components/app_render_entrance.dart';
 import 'package:managementt/components/project_card.dart';
@@ -28,7 +29,7 @@ const _months = [
 ];
 
 class UserProjectDashboard extends StatefulWidget {
-  const UserProjectDashboard({super.key});
+  UserProjectDashboard({super.key});
 
   @override
   State<UserProjectDashboard> createState() => _UserProjectDashboardState();
@@ -71,7 +72,7 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
       // debug log to help diagnose missing projects
       // ignore: avoid_print
       print('UserProjectDashboard: fetching tasks for userId=$userId');
-      taskController.fetchUserProjects(userId);
+      userTaskController.fetchUserProjects(userId);
     } else {
       // listen once and fetch when the id becomes available
       once(profileController.member, (val) {
@@ -80,7 +81,7 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
         print(
           'UserProjectDashboard: detected userId update, fetching for $newId',
         );
-        if (newId != null) taskController.fetchUserProjects(newId);
+        if (newId != null) userTaskController.fetchUserProjects(newId);
       });
     }
   }
@@ -97,11 +98,11 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
   }
 
   final dc = Get.find<UserDashboardController>();
-  final taskController = Get.find<UserTaskController>();
+  final userTaskController = Get.find<UserTaskController>();
 
   List<String> get _projectCategoryOptions {
     final categories = <String>{};
-    for (final project in taskController.userProjects) {
+    for (final project in userTaskController.userProjects) {
       final category = (project.category ?? '').trim();
       if (category.isNotEmpty) categories.add(category);
     }
@@ -209,7 +210,7 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
   }
 
   List<Task> getFilteredProjects() {
-    final projects = taskController.userProjects;
+    final projects = userTaskController.userProjects;
     final query = searchQuery.value.trim().toLowerCase();
 
     var filtered = projects.where((t) {
@@ -499,26 +500,26 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
                           children: [
                             _StatChip(
                               label: 'Total',
-                              count: taskController.userProjects.length,
+                              count: userTaskController.userProjects.length,
                               color: const Color(0xFF60A5FA),
                             ),
                             _StatChip(
                               label: 'Active',
-                              count: taskController.userProjects
+                              count: userTaskController.userProjects
                                   .where((t) => t.status == 'IN_PROGRESS')
                                   .length,
                               color: const Color(0xFF4ADE80),
                             ),
                             _StatChip(
                               label: 'Done',
-                              count: taskController.userProjects
+                              count: userTaskController.userProjects
                                   .where(_isDoneProject)
                                   .length,
                               color: const Color(0xFFA78BFA),
                             ),
                             _StatChip(
                               label: 'Overdue',
-                              count: taskController.userProjects
+                              count: userTaskController.userProjects
                                   .where((t) => t.status == 'OVERDUE')
                                   .length,
                               color: const Color(0xFFF87171),
@@ -613,32 +614,57 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
                           project.ownerId,
                         );
 
-                        return ProjectCard(
-                          title: project.title,
-                          subtitle: project.description,
-                          dueText: dc.formatDeadline(project.deadLine),
-                          status: totalSub > 0
-                              ? '${project.completedTask}/$totalSub tasks'
-                              : null,
-                          priority: _priorityLabel(project.priority),
-                          state: _statusLabel(project),
-                          progress: project.progress / 100.0,
-                          timeProgress: DateTimeHelper.remainingTimeRatio(
-                            project.startDate,
-                            project.deadLine,
-                          ),
-                          teamMembers: [ownerInitials],
-                          accentColor: dc.projectAccent(project),
-                          onTap: () {
-                            Get.to(
-                              () => ProjectDetailPage(
-                                project: project,
-                                projectMemberNames: [
-                                  dc.getMemberName(project.ownerId),
-                                ],
-                              ),
+                        return Dismissible(
+                          key: ValueKey(project.id),
+                          direction: DismissDirection.endToStart,
+                          confirmDismiss: (_) async {
+                            return AppConfirmDialog.show(
+                              title: 'Delete Project',
+                              message: 'Remove "${project.title}"?',
+                              confirmText: 'Delete',
                             );
                           },
+                          onDismissed: (_) {
+                            if (project.id != null) {
+                              userTaskController.removeProject(project.id!);
+                            }
+                          },
+                          background: Container(
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.only(right: 20),
+                            color: Colors.red,
+                            child: const Icon(
+                              Icons.delete,
+                              color: Colors.white,
+                            ),
+                          ),
+                          child: ProjectCard(
+                            title: project.title,
+                            subtitle: project.description,
+                            dueText: dc.formatDeadline(project.deadLine),
+                            status: totalSub > 0
+                                ? '${project.completedTask}/$totalSub tasks'
+                                : null,
+                            priority: _priorityLabel(project.priority),
+                            state: _statusLabel(project),
+                            progress: project.progress / 100.0,
+                            timeProgress: DateTimeHelper.remainingTimeRatio(
+                              project.startDate,
+                              project.deadLine,
+                            ),
+                            teamMembers: [ownerInitials],
+                            accentColor: dc.projectAccent(project),
+                            onTap: () {
+                              Get.to(
+                                () => ProjectDetailPage(
+                                  project: project,
+                                  projectMemberNames: [
+                                    dc.getMemberName(project.ownerId),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
                         );
                       },
                     );

@@ -108,7 +108,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
 
     if (!confirmed) return;
 
-    await _taskController.removeTask(taskId);
+    await _taskController.removeTask(taskId, true);
     _markChanged();
     AppSnackbar.show(
       'Task deleted',

@@ -584,7 +584,7 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                         },
                         onDismissed: (_) {
                           if (task.id != null) {
-                            taskController.removeTask(task.id!);
+                            taskController.removeTask(task.id!, true);
                           }
                         },
                         background: Container(

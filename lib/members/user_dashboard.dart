@@ -403,7 +403,7 @@ class UserDashboard extends StatelessWidget {
                         Get.find<UserNavController>().changePage(1);
                         return;
                       }
-                      Get.to(() => const UserProjectDashboard());
+                      Get.to(() => UserProjectDashboard());
                     },
                   ),
 

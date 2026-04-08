@@ -1,4 +1,5 @@
 import 'package:get/state_manager.dart';
+import 'package:managementt/components/app_snackbar.dart';
 import 'package:managementt/model/task.dart';
 import 'package:managementt/service/task_service.dart';
 
@@ -6,6 +7,26 @@ class UserTaskController extends GetxController {
   final TaskService _taskService = TaskService();
   var userTasks = <Task>[].obs;
   var userProjects = <Task>[].obs;
+
+  Future<void> removeProject(String id) async {
+    final index = userProjects.indexWhere((project) => project.id == id);
+    if (index < 0) {
+      return;
+    }
+
+    final removed = userProjects[index];
+    userProjects.removeAt(index);
+    userProjects.refresh();
+
+    try {
+      await _taskService.deleteTask(id, false);
+    } catch (e) {
+      final safeIndex = index.clamp(0, userProjects.length);
+      userProjects.insert(safeIndex, removed);
+      userProjects.refresh();
+      AppSnackbar.show('Error', 'Failed to remove task: $e');
+    }
+  }
 
   Future<void> fetchUserProjects(String userId) async {
     try {

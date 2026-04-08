@@ -14,7 +14,7 @@ class UserWrapper extends StatelessWidget {
 
   final List<Widget> _pages = [
     const UserDashboard(),
-    const UserProjectDashboard(),
+    UserProjectDashboard(),
     const UserTaskDashboard(),
     const UserAnalyticsPage(),
   ];

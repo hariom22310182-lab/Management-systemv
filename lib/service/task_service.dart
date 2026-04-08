@@ -147,8 +147,8 @@ class TaskService {
     }
   }
 
-  Future<void> deleteTask(String id) async {
-    final response = await _api.delete('/tasks/delete/$id');
+  Future<void> deleteTask(String id, bool isAdmin) async {
+    final response = await _api.delete('/tasks/delete/$id/$isAdmin');
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(
         response.body.isNotEmpty ? response.body : 'Failed to delete task',

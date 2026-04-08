@@ -173,9 +173,9 @@ class TaskController extends GetxController {
     }
   }
 
-  Future<void> removeTask(String id) async {
+  Future<void> removeTask(String id, bool isAdmin) async {
     try {
-      await _taskService.deleteTask(id);
+      await _taskService.deleteTask(id, isAdmin);
       await getAllTask();
       _refreshRelated();
     } catch (e) {
